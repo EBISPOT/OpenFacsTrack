@@ -21,7 +21,6 @@ admin.site.site_title = "COVID19 tracking database admin"
 admin.site.index_title = "Welcome to COVID19 tracking database admin"
 
 urlpatterns = [
-    path('track/', include('openfacstrack.apps.track.urls')),
-    path('admin/', admin.site.urls),
-    
+    path("track/", include("openfacstrack.apps.track.urls")),
+    path("admin/", admin.site.urls),
 ]
