@@ -3,3 +3,5 @@ gunicorn
 django-heroku
 requests
 psycopg2
+pandas
+xlrd
