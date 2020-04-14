@@ -27,7 +27,7 @@ services:
     volumes:
       - static_volume:/home/openfacstrack/web/static
     ports:
-      - 1337:80
+      - 80:80
     depends_on:
       - web
 
