@@ -16,6 +16,9 @@ ENV PYTHONUNBUFFERED 1
 RUN apk update \
     && apk add postgresql-dev gcc python3-dev musl-dev
 
+# install pandas dependencies
+RUN apk add build-base
+
 # lint
 RUN pip install --upgrade pip
 RUN pip install flake8

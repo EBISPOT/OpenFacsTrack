@@ -9,7 +9,11 @@ from openfacstrack.apps.core.models import TimeStampedModel
 
 class Patient(TimeStampedModel):
 
-    SEX_TYPE = [("M", "Male"), ("F", "Female"), ("U", "Unknown")]
+    SEX_TYPE = [
+        ("M", "Male"),
+        ("F", "Female"),
+        ("U", "Unknown"),
+    ]
 
     covid_patent_id = models.TextField()
     age = models.CharField(max_length=15)
@@ -111,6 +115,8 @@ class Parameter(TimeStampedModel):
     excel_column_name = models.CharField(max_length=255)
     description = models.TextField()
     is_reference_parameter = models.BooleanField()
+    gating_hierarchy = models.TextField()
+    unit = models.CharField(max_length=255)
 
     def __str__(self):
         return ", ".join(
