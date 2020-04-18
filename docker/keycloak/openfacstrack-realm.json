@@ -36,6 +36,30 @@
   "quickLoginCheckMilliSeconds": 1000,
   "maxDeltaTimeSeconds": 43200,
   "failureFactor": 30,
+  "users": [
+    {
+      "username": "test",
+      "enabled": true,
+      "email": "sample-user@example",
+      "firstName": "Test",
+      "lastName": "User",
+      "credentials": [
+        {
+          "type": "test",
+          "value": "test"
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ],
+      "clientRoles": {
+        "account": [
+          "view-profile",
+          "manage-account"
+        ]
+      }
+    }
+  ],
   "roles": {
     "realm": [
       {
@@ -632,7 +656,7 @@
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
-      "secret": "**********",
+      "secret": "29c8b8b0-ef05-4f6a-bc98-fe6ce3ffea39",
       "redirectUris": [
         "http://localhost:8000/*"
       ],
@@ -1489,241 +1513,6 @@
         "config": {
           "allow-default-scopes": [
             "true"
-          ]
-        }
-      }
-    ],
-    "org.keycloak.storage.UserStorageProvider": [
-      {
-        "id": "03a820f7-74c5-4c0b-863a-7d4ed17ad245",
-        "name": "ldap",
-        "providerId": "ldap",
-        "subComponents": {
-          "org.keycloak.storage.ldap.mappers.LDAPStorageMapper": [
-            {
-              "id": "8cf14372-7d60-4c87-950d-ce2426bfeaa9",
-              "name": "first name",
-              "providerId": "user-attribute-ldap-mapper",
-              "subComponents": {},
-              "config": {
-                "ldap.attribute": [
-                  "cn"
-                ],
-                "is.mandatory.in.ldap": [
-                  "true"
-                ],
-                "always.read.value.from.ldap": [
-                  "true"
-                ],
-                "read.only": [
-                  "true"
-                ],
-                "user.model.attribute": [
-                  "firstName"
-                ]
-              }
-            },
-            {
-              "id": "eeb2cc33-4c5a-4cd7-979f-92d6f7b7d909",
-              "name": "modify date",
-              "providerId": "user-attribute-ldap-mapper",
-              "subComponents": {},
-              "config": {
-                "ldap.attribute": [
-                  "modifyTimestamp"
-                ],
-                "is.mandatory.in.ldap": [
-                  "false"
-                ],
-                "read.only": [
-                  "true"
-                ],
-                "always.read.value.from.ldap": [
-                  "true"
-                ],
-                "user.model.attribute": [
-                  "modifyTimestamp"
-                ]
-              }
-            },
-            {
-              "id": "06df86df-504b-4d45-9719-a49c53f42582",
-              "name": "email",
-              "providerId": "user-attribute-ldap-mapper",
-              "subComponents": {},
-              "config": {
-                "ldap.attribute": [
-                  "mail"
-                ],
-                "is.mandatory.in.ldap": [
-                  "false"
-                ],
-                "always.read.value.from.ldap": [
-                  "false"
-                ],
-                "read.only": [
-                  "true"
-                ],
-                "user.model.attribute": [
-                  "email"
-                ]
-              }
-            },
-            {
-              "id": "bb2657f3-d9b5-4243-b424-ab2aafe19e44",
-              "name": "creation date",
-              "providerId": "user-attribute-ldap-mapper",
-              "subComponents": {},
-              "config": {
-                "ldap.attribute": [
-                  "createTimestamp"
-                ],
-                "is.mandatory.in.ldap": [
-                  "false"
-                ],
-                "read.only": [
-                  "true"
-                ],
-                "always.read.value.from.ldap": [
-                  "true"
-                ],
-                "user.model.attribute": [
-                  "createTimestamp"
-                ]
-              }
-            },
-            {
-              "id": "5b710d3d-302a-4963-a645-64e1483918ec",
-              "name": "username",
-              "providerId": "user-attribute-ldap-mapper",
-              "subComponents": {},
-              "config": {
-                "ldap.attribute": [
-                  "uid"
-                ],
-                "is.mandatory.in.ldap": [
-                  "true"
-                ],
-                "read.only": [
-                  "true"
-                ],
-                "always.read.value.from.ldap": [
-                  "false"
-                ],
-                "user.model.attribute": [
-                  "username"
-                ]
-              }
-            },
-            {
-              "id": "bbbd0bd4-0ac0-442e-bc52-c5d6ed5a9c99",
-              "name": "last name",
-              "providerId": "user-attribute-ldap-mapper",
-              "subComponents": {},
-              "config": {
-                "ldap.attribute": [
-                  "sn"
-                ],
-                "is.mandatory.in.ldap": [
-                  "true"
-                ],
-                "read.only": [
-                  "true"
-                ],
-                "always.read.value.from.ldap": [
-                  "true"
-                ],
-                "user.model.attribute": [
-                  "lastName"
-                ]
-              }
-            }
-          ]
-        },
-        "config": {
-          "pagination": [
-            "true"
-          ],
-          "fullSyncPeriod": [
-            "604800"
-          ],
-          "usersDn": [
-            "ou=people,dc=ebi,dc=ac,dc=uk"
-          ],
-          "connectionPooling": [
-            "true"
-          ],
-          "cachePolicy": [
-            "DEFAULT"
-          ],
-          "useKerberosForPasswordAuthentication": [
-            "false"
-          ],
-          "importEnabled": [
-            "true"
-          ],
-          "enabled": [
-            "true"
-          ],
-          "changedSyncPeriod": [
-            "86400"
-          ],
-          "usernameLDAPAttribute": [
-            "uid"
-          ],
-          "lastSync": [
-            "1587198758"
-          ],
-          "vendor": [
-            "other"
-          ],
-          "uuidLDAPAttribute": [
-            "uidNumber"
-          ],
-          "connectionUrl": [
-            "ldaps://ldap.ebi.ac.uk"
-          ],
-          "allowKerberosAuthentication": [
-            "false"
-          ],
-          "syncRegistrations": [
-            "false"
-          ],
-          "authType": [
-            "none"
-          ],
-          "customUserSearchFilter": [
-            "(& (eduPersonAffiliation=staff) (ebiAccountState=active) (ebiSponsor=parkinso))"
-          ],
-          "debug": [
-            "false"
-          ],
-          "searchScope": [
-            "1"
-          ],
-          "useTruststoreSpi": [
-            "ldapsOnly"
-          ],
-          "priority": [
-            "0"
-          ],
-          "trustEmail": [
-            "true"
-          ],
-          "userObjectClasses": [
-            "inetOrgPerson, organizationalPerson"
-          ],
-          "rdnLDAPAttribute": [
-            "uid"
-          ],
-          "editMode": [
-            "READ_ONLY"
-          ],
-          "validatePasswordPolicy": [
-            "false"
-          ],
-          "batchSizeForSync": [
-            "1000"
           ]
         }
       }

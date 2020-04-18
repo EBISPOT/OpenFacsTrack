@@ -18,10 +18,10 @@ COPY requirements.txt /usr/src/openfacstrack/requirements.txt
 RUN pip install -r requirements.txt
 
 # copy entrypoint.dev.sh
-COPY entrypoint.dev.sh /usr/src/openfacstrack/entrypoint.dev.sh
+COPY docker/entrypoint.dev.sh /usr/src/openfacstrack/entrypoint.dev.sh
 
 # copy project
-COPY .. /usr/src/openfacstrack/
+COPY . /usr/src/openfacstrack/
 
 # run entrypoint.dev.sh
-ENTRYPOINT ["/usr/src/openfacstrack/entrypoint.dev.sh"]
+ENTRYPOINT ["/usr/src/openfacstrack/docker/entrypoint.dev.sh"]
