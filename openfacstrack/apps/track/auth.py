@@ -15,8 +15,6 @@ class TrackOIDCAB(OIDCAuthenticationBackend):
             user_group = Group.objects.get(name=group_name)
             user_group.user_set.add(user)
         user.save()
-        print(user)
-        print(claims)
         return user
 
     def update_user(self, user, claims):
@@ -25,5 +23,4 @@ class TrackOIDCAB(OIDCAuthenticationBackend):
         user.last_name = claims.get("family_name", "")
         user.is_staff = "admin" in claims.get("group", [])
         user.save()
-
         return user

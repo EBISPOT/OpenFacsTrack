@@ -133,5 +133,5 @@ dmypy.json
 #IDE
 .idea/*
 
-static
+static/*
 .DS_Store

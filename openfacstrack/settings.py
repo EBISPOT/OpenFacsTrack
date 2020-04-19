@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "openfacstrack.apps.track",
     "django.contrib.admin",
+    "crispy_forms",
 ]
 
 MIDDLEWARE = [
@@ -132,6 +133,7 @@ OIDC_OP_USER_ENDPOINT = os.environ.get(
     "OIDC_OP_USER_ENDPOINT",
     "http://keycloak.localhost:8080/auth/realms/openfacstrack/protocol/openid-connect/userinfo",
 )
+
 LOGIN_REDIRECT_URL = os.environ.get("LOGIN_REDIRECT_URL", "/track/upload/")
 LOGOUT_REDIRECT_URL = os.environ.get("LOGOUT_REDIRECT_URL", "/track/")
 
@@ -154,3 +156,6 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "static/")
+
+
+CRISPY_TEMPLATE_PACK = "bootstrap4"
