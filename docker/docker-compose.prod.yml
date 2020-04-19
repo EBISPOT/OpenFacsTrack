@@ -3,7 +3,7 @@ version: '3.7'
 services:
   web:
     build:
-      context: .
+      context: ""
       dockerfile: Dockerfile.prod
     command: gunicorn openfacstrack.wsgi:application --bind 0.0.0.0:8000 --env DJANGO_SETTINGS_MODULE=openfacstrack.settings
     volumes:
@@ -23,7 +23,7 @@ services:
       - POSTGRES_PASSWORD=openfacstrack
       - POSTGRES_DB=openfacstrack
   nginx:
-    build: ./nginx
+    build: nginx
     volumes:
       - static_volume:/home/openfacstrack/web/static
     ports:

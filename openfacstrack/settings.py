@@ -35,13 +35,14 @@ if os.environ.get("DJANGO_ALLOWED_HOSTS") is not None:
 # Application definition
 
 INSTALLED_APPS = [
-    "django.contrib.admin",
     "django.contrib.auth",
+    "mozilla_django_oidc",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "openfacstrack.apps.track",
+    "django.contrib.admin",
 ]
 
 MIDDLEWARE = [
@@ -52,14 +53,20 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "mozilla_django_oidc.middleware.SessionRefresh",
 ]
+
+AUTHENTICATION_BACKENDS = (
+    "django.contrib.auth.backends.ModelBackend",
+    "openfacstrack.apps.track.auth.TrackOIDCAB",
+)
 
 ROOT_URLCONF = "openfacstrack.urls"
 
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [os.path.join(BASE_DIR, "templates")],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -102,6 +109,31 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
+# OpenID configuration
+
+OIDC_RP_SIGN_ALGO = os.environ.get("OIDC_RP_SIGN_ALGO", "RS256")
+OIDC_OP_JWKS_ENDPOINT = os.environ.get(
+    "OIDC_OP_JWKS_ENDPOINT",
+    "http://keycloak.localhost:8080/auth/realms/openfacstrack/protocol/openid-connect/certs",
+)
+OIDC_RP_CLIENT_ID = os.environ.get("OIDC_RP_CLIENT_ID", "django-oidc")
+OIDC_RP_CLIENT_SECRET = os.environ.get(
+    "OIDC_RP_CLIENT_SECRET", "29c8b8b0-ef05-4f6a-bc98-fe6ce3ffea39"
+)
+OIDC_OP_AUTHORIZATION_ENDPOINT = os.environ.get(
+    "OIDC_OP_AUTHORIZATION_ENDPOINT",
+    "http://keycloak.localhost:8080/auth/realms/openfacstrack/protocol/openid-connect/auth",
+)
+OIDC_OP_TOKEN_ENDPOINT = os.environ.get(
+    "OIDC_OP_TOKEN_ENDPOINT",
+    "http://keycloak.localhost:8080/auth/realms/openfacstrack/protocol/openid-connect/token",
+)
+OIDC_OP_USER_ENDPOINT = os.environ.get(
+    "OIDC_OP_USER_ENDPOINT",
+    "http://keycloak.localhost:8080/auth/realms/openfacstrack/protocol/openid-connect/userinfo",
+)
+LOGIN_REDIRECT_URL = os.environ.get("LOGIN_REDIRECT_URL", "/track/upload/")
+LOGOUT_REDIRECT_URL = os.environ.get("LOGOUT_REDIRECT_URL", "/track/")
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/

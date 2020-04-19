@@ -102,7 +102,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env.prod
+docker/.env.prod
 .venv
 env/
 venv/
@@ -132,3 +132,6 @@ dmypy.json
 
 #IDE
 .idea/*
+
+static
+.DS_Store
