@@ -7,33 +7,48 @@ from openfacstrack.apps.core.models import TimeStampedModel
 # models unless overridden
 
 
-class Patient(TimeStampedModel):
+class ClinicalSample(TimeStampedModel):
 
-    SEX_TYPE = [
-        ("M", "Male"),
-        ("F", "Female"),
-        ("U", "Unknown"),
-    ]
+    covid_patient_id = models.TextField()
 
-    covid_patent_id = models.TextField()
-    age = models.CharField(max_length=15)
-    year_of_birth = models.IntegerField()
-    sex = models.CharField(max_length=2, choices=SEX_TYPE)
-    AID = models.TextField(max_length=50)
+    def __str__(self):
+        return "CovidID:" + self.covid_patient_id
+
+class ClinicalSampleMetadataDict(TimeStampedModel):
+
+    name = models.CharField(max_length=255)
+    description = models.CharField(max_length=255)
+    notes = models.CharField(max_length=255, blank=True)
 
     def __str__(self):
         return ", ".join(
             [
-                "CovidID:" + self.covid_patent_id,
-                "Age: " + str(self.age),
-                "Sex: " + self.sex,
+                "Metadata Key:" + self.name,
+                "Description:" + self.description,
+                "notes:" + self.notes,
+            ]
+        )
+
+
+class ClinicalSampleMetadata(TimeStampedModel):
+
+    clinical_sample = models.ForeignKey(ClinicalSample, on_delete=models.CASCADE)
+    metadata_key = models.ForeignKey(ClinicalSampleMetadataDict, on_delete=models.CASCADE)
+    metadata_value = models.CharField(max_length=255)
+
+    def __str__(self):
+        return ", ".join(
+            [
+                "Clinical sample ID:" + self.clinical_sample.covid_patient_id,
+                "Metadata Key:" + self.metadata_key.name,
+                "Metadata value:" + self.metadata_value,
             ]
         )
 
 
 class ProcessedSample(TimeStampedModel):
 
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    clinical_sample = models.ForeignKey(ClinicalSample, on_delete=models.CASCADE)
 
     date_acquired = models.DateField()
     biobank_id = models.CharField(max_length=12)
@@ -54,7 +69,7 @@ class ProcessedSample(TimeStampedModel):
     def __str__(self):
         return ", ".join(
             [
-                "Patient ID:" + self.patient.covid_patent_id,
+                "Clinical sample ID:" + self.clinical_sample.covid_patient_id,
                 "Biobank ID:" + self.biobank_id,
                 "Date acquired:" + str(self.date_acquired),
             ]
@@ -78,7 +93,7 @@ class StoredSample(TimeStampedModel):
     def __str__(self):
         return ", ".join(
             [
-                "Patient ID:" + self.processed_sample.patient.covid_patent_id,
+                "Clinical sample ID:" + self.processed_sample.clinical_sample.covid_patient_id,
                 "Biobank ID:" + self.processed_sample.biobank_id,
                 "Date acquired:" + self.date_acquired,
                 "Stored Sample ID" + self.stored_sample_id,
@@ -96,7 +111,8 @@ class Panel(TimeStampedModel):
 class PanelMetadata(TimeStampedModel):
 
     panel = models.ForeignKey(Panel, on_delete=models.CASCADE)
-    name = models.CharField(max_length=255)
+    key = models.CharField(max_length=255)
+    value =models.CharField(max_length=255)
 
     def __str__(self):
         return ", ".join(["Panel name:" + self.panel.name, "Metadata:" + self.name])
@@ -142,7 +158,7 @@ class DataProcessing(TimeStampedModel):
     def __str__(self):
         return ", ".join(
             [
-                "Patient ID:" + self.processed_sample.patient.covid_patent_id,
+                "Clinical sample ID:" + self.processed_sample.clinical_sample.covid_patient_id,
                 "Panel name:" + self.panel.name,
                 "FCS file:"
                 + self.fcs_file_name
@@ -161,7 +177,7 @@ class NumericParameter(TimeStampedModel):
     def __str__(self):
         return ", ".join(
             [
-                "Patient ID:" + self.processed_sample.patient.covid_patent_id,
+                "Clinical sample ID:" + self.processed_sample.clinical_sample.covid_patient_id,
                 "Parameter:" + self.parameter.display_name,
                 "Value:" + str(self.value),
             ]
@@ -176,7 +192,7 @@ class TextParameter(TimeStampedModel):
     def __str__(self):
         return ", ".join(
             [
-                "Patient ID:" + self.processed_sample.patient.covid_patent_id,
+                "Clinical sample ID:" + self.processed_sample.clinical_sample.covid_patient_id,
                 "Parameter:" + self.parameter.display_name,
                 "Value:" + self.value,
             ]
