@@ -132,6 +132,7 @@ OIDC_OP_USER_ENDPOINT = os.environ.get(
     "OIDC_OP_USER_ENDPOINT",
     "http://keycloak.localhost:8080/auth/realms/openfacstrack/protocol/openid-connect/userinfo",
 )
+
 LOGIN_REDIRECT_URL = os.environ.get("LOGIN_REDIRECT_URL", "/track/upload/")
 LOGOUT_REDIRECT_URL = os.environ.get("LOGOUT_REDIRECT_URL", "/track/")
 

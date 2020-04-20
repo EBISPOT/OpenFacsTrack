@@ -42,8 +42,6 @@ def load_panel_data(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ("track", "0002_add_gating_heirarchy_and_unit"),
-    ]
+    dependencies = [("track", "0002_add_gating_heirarchy_and_unit")]
 
     operations = [migrations.RunPython(load_panel_data)]

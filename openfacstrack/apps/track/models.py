@@ -9,11 +9,7 @@ from openfacstrack.apps.core.models import TimeStampedModel
 
 class Patient(TimeStampedModel):
 
-    SEX_TYPE = [
-        ("M", "Male"),
-        ("F", "Female"),
-        ("U", "Unknown"),
-    ]
+    SEX_TYPE = [("M", "Male"), ("F", "Female"), ("U", "Unknown")]
 
     covid_patent_id = models.TextField()
     age = models.CharField(max_length=15)
