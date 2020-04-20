@@ -1,15 +1,20 @@
 {% extends 'track/base.html' %}
 {% block content %}
-    <form action="/track/upload/" method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-        <div class="row">
-            <div class="custom-file">
-                <input type="file" multiple class="custom-file-input" id="customFile" name="file">
-                <label class="custom-file-label" for="customFile">Choose file</label>
-            </div>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <form action="/track/upload/" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="custom-file mb-2">
+                        <input type="file" multiple class="custom-file-input" id="customFile" name="file">
+                        <label class="custom-file-label" for="customFile">Choose file</label>
+                    </div>
+                </div>
+                <div class="row mt-1 float-right">
+                    <button class="btn btn-outline-primary" type="submit"><i class="fa fa-upload"></i>Upload</button>
+                </div>
+            </form>
         </div>
-        <div class="row mt-1 float-right">
-            <button class="btn btn-outline-primary" type="submit"><i class="fa fa-upload"></i>Upload</button>
-        </div>
-    </form>
+    </div>
+
 {% endblock %}

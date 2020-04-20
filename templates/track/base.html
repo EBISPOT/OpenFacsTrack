@@ -19,67 +19,9 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-2 bg-light d-none d-md-block sidebar shadow text-white">
-                <div class="left-sidebar">
-                    <ul class="nav flex-column sidebar-nav">
-                        <li class="nav-item">
-                            <a class="nav-link active" href="#">
-                                <svg class="bi bi-chevron-right" width="16" height="16" viewBox="0 0 20 20"
-                                     fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                    <path fill-rule="evenodd"
-                                          d="M6.646 3.646a.5.5 0 01.708 0l6 6a.5.5 0 010 .708l-6 6a.5.5 0 01-.708-.708L12.293 10 6.646 4.354a.5.5 0 010-.708z"
-                                          clip-rule="evenodd"/>
-                                </svg>
-                                Candidates
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                <svg class="bi bi-chevron-right" width="16" height="16" viewBox="0 0 20 20"
-                                     fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                    <path fill-rule="evenodd"
-                                          d="M6.646 3.646a.5.5 0 01.708 0l6 6a.5.5 0 010 .708l-6 6a.5.5 0 01-.708-.708L12.293 10 6.646 4.354a.5.5 0 010-.708z"
-                                          clip-rule="evenodd"/>
-                                </svg>
-                                Jobs
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                <svg class="bi bi-chevron-right" width="16" height="16" viewBox="0 0 20 20"
-                                     fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                    <path fill-rule="evenodd"
-                                          d="M6.646 3.646a.5.5 0 01.708 0l6 6a.5.5 0 010 .708l-6 6a.5.5 0 01-.708-.708L12.293 10 6.646 4.354a.5.5 0 010-.708z"
-                                          clip-rule="evenodd"/>
-                                </svg>
-                                Orders
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                <svg class="bi bi-chevron-right" width="16" height="16" viewBox="0 0 20 20"
-                                     fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                    <path fill-rule="evenodd"
-                                          d="M6.646 3.646a.5.5 0 01.708 0l6 6a.5.5 0 010 .708l-6 6a.5.5 0 01-.708-.708L12.293 10 6.646 4.354a.5.5 0 010-.708z"
-                                          clip-rule="evenodd"/>
-                                </svg>
-                                Invoices
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                <svg class="bi bi-chevron-right" width="16" height="16" viewBox="0 0 20 20"
-                                     fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                                    <path fill-rule="evenodd"
-                                          d="M6.646 3.646a.5.5 0 01.708 0l6 6a.5.5 0 010 .708l-6 6a.5.5 0 01-.708-.708L12.293 10 6.646 4.354a.5.5 0 010-.708z"
-                                          clip-rule="evenodd"/>
-                                </svg>
-                                Reports
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+                {% include "track/includes/side-nav.html" %}
             </div>
-            <div class="col-md-8">
+            <div class="col-md-12">
                 {% block content %}
                 {% endblock %}
             </div>
@@ -98,8 +40,8 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
         integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
         crossorigin="anonymous"></script>
-    <script src="https://kit.fontawesome.com/d1cb97821e.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bs-custom-file-input/dist/bs-custom-file-input.min.js"></script>
-    <script src="{% static '/track/js/main.js' %}"></script>
+<script src="https://kit.fontawesome.com/d1cb97821e.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bs-custom-file-input/dist/bs-custom-file-input.min.js"></script>
+<script src="{% static '/track/js/main.js' %}"></script>
 </body>
 </html>
