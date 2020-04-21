@@ -26,7 +26,7 @@ COPY . /usr/src/openfacstrack/
 RUN flake8 --ignore=E501,F401,W503 openfacstrack
 
 # install dependencies
-COPY ./requirements.txt .
+COPY requirements.txt .
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir /usr/src/openfacstrack/wheels -r requirements.txt
 
 
@@ -51,14 +51,14 @@ RUN mkdir $APP_HOME/static
 WORKDIR $APP_HOME
 
 # install dependencies
-RUN apk update && apk add libpq
+RUN apk update && apk add libpq libffi-dev
 COPY --from=builder /usr/src/openfacstrack/wheels /wheels
 COPY --from=builder /usr/src/openfacstrack/requirements.txt .
 RUN pip install --upgrade pip
 RUN pip install --no-cache /wheels/*
 
 # copy entrypoint-prod.sh
-COPY ./entrypoint.prod.sh $APP_HOME
+COPY docker/entrypoint.prod.sh $APP_HOME
 
 # copy project
 COPY . $APP_HOME
