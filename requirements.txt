@@ -3,6 +3,7 @@ gunicorn
 django-heroku
 requests
 psycopg2
+mozilla-django-oidc
 numpy
 pandas
 xlrd

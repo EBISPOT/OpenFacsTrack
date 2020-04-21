@@ -15,6 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from django.conf.urls import url
 
 admin.site.site_header = "COVID19 tracking database admin"
 admin.site.site_title = "COVID19 tracking database admin"

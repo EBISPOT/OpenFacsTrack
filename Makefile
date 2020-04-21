@@ -1,18 +1,18 @@
 default: dev
 
 dev:            ##@dev setup development environment using Docker
-	chmod +x entrypoint.dev.sh
-	docker-compose -f docker-compose.dev.yml up --build
+	chmod +x docker/entrypoint.dev.sh
+	docker-compose -f docker/docker-compose.dev.yml up --build
 
 clean-dev:          ##@clean-dev clean development environment containers
-	docker-compose -f docker-compose.dev.yml down
+	docker-compose -f docker/docker-compose.dev.yml  down -v
 
 deploy:         ##@deploy setup production environment using Docker
-	chmod +x entrypoint.prod.sh
-	docker-compose -f docker-compose.prod.yml up --build
+	chmod +x docker/entrypoint.prod.sh
+	docker-compose -f docker/docker-compose.prod.yml up --build
 
 clean-deploy:      ##@clean-deploy clean production environment containers
-	docker-compose -f docker-compose.prod.yml down
+	docker-compose -f docker/docker-compose.prod.yml down
 
 ########################################################################################################################
  HELP_FUN = \
