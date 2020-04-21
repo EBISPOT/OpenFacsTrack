@@ -13,7 +13,7 @@ services:
   keycloak:
     image: jboss/keycloak
     volumes:
-    - ./keycloak/openfacstrack-realm.json:/tmp/openfacstrack-realm.json
+    - ./keycloak/openfacstrack-realm.dev.json:/tmp/openfacstrack-realm.json
     env_file:
       - .env.dev
     ports:
