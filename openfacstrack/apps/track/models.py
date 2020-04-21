@@ -152,8 +152,8 @@ class DataProcessing(TimeStampedModel):
 
     fcs_file_name = models.CharField(max_length=255)
     fcs_file_location = models.CharField(max_length=255)
-    is_in_FlowRepository = models.BooleanField()
-    is_automated_gating_done = models.BooleanField()
+    is_in_FlowRepository = models.BooleanField(blank=True, null=True)
+    is_automated_gating_done = models.BooleanField(blank=True, null=True)
 
     def __str__(self):
         return ", ".join(
@@ -178,7 +178,8 @@ class NumericParameter(TimeStampedModel):
         return ", ".join(
             [
                 "Clinical sample ID:" + self.processed_sample.clinical_sample.covid_patient_id,
-                "Parameter:" + self.parameter.display_name,
+                "Parameter:" + self.parameter.gating_hierarchy,
+                #"Parameter:" + self.parameter.display_name,
                 "Value:" + str(self.value),
             ]
         )

@@ -9,7 +9,7 @@ def load_panel_data(apps, schema_editor):
 
     # Read xls or csv file and append panels and parameters
     # Hard-coding filename here initially
-    df_panels = pd.read_excel("./sample_data/population_names_200331.xlsx", skiprows=1)
+    df_panels = pd.read_excel("./sample_data/population_names_20200413.xlsx", skiprows=1)
 
     # Store panel names in Panel table
     panel_names = [p.upper() for p in df_panels.panel.unique().tolist()]
