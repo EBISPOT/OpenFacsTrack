@@ -130,7 +130,7 @@ class Parameter(TimeStampedModel):
     display_name = models.CharField(max_length=255)
     excel_column_name = models.CharField(max_length=255)
     description = models.TextField()
-    is_reference_parameter = models.BooleanField()
+    is_reference_parameter = models.BooleanField(blank=True, null=True)
     gating_hierarchy = models.TextField()
     unit = models.CharField(max_length=255)
 
