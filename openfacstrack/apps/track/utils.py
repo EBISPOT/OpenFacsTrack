@@ -186,10 +186,17 @@ class ClinicalSampleFile():
             for panel in self.panels:
                 panels_pk[panel] = Panel.objects.get(name=panel.upper()).id
 
+            # Store first panel primary key for obtaining parameters for
+            # this panel
+            panel_pk = panels_pk[self.panels[0]]
+
             parameters_pk = {}
             for parameter in self.parameter_columns:
+                #ToDo add panel to query! we want parameter for this panel
                 parameters_pk[parameter] = \
-                    Parameter.objects.get(gating_hierarchy=parameter).id
+                    Parameter.objects.get(
+                        gating_hierarchy=parameter,
+                        panel=panel_pk).id
 
             # Store details in relevant tables
             for index, row in self.df.iterrows():
