@@ -5,7 +5,9 @@ from openfacstrack.apps.track.models import (
     PanelMetadata,
     Parameter,
     ProcessedSample,
-    Patient,
+    ClinicalSample,
+    ClinicalSampleMetadataDict,
+    ClinicalSampleMetadata,
     StoredSample,
     Panel,
     DataProcessing,
@@ -28,15 +30,25 @@ class ParameterAdmin(admin.ModelAdmin):
 
 
 class PanelAdmin(admin.ModelAdmin):
-    inlines = [PanelMetadataInline, ParameterInline]
-
+    #inlines = [PanelMetadataInline, ParameterInline]
+    inlines = [ParameterInline,]
 
 class ProcessedSampleInline(admin.TabularInline):
     model = ProcessedSample
 
+class ClinicalSampleMetadataDictInline(admin.TabularInline):
+    model = ClinicalSampleMetadataDict
 
-class PatientAdmin(admin.ModelAdmin):
-    inlines = [ProcessedSampleInline]
+class ClinicalSampleMetadataInline(admin.TabularInline):
+    model = ClinicalSampleMetadata
+
+class ClinicalSampleMetadataDictAdmin(admin.ModelAdmin):
+    model = ClinicalSampleMetadataDict
+
+class ClinicalSampleMetadataAdmin(admin.ModelAdmin):
+    model = ClinicalSampleMetadata
+#    inlines = [ClinicalSampleMetadataInline,]
+#    #inlines = [ClinicalSampleMetadataInline, ClinicalSampleMetadataDictInline]
 
 
 class NumericParameterAdmin(admin.ModelAdmin):
@@ -53,7 +65,10 @@ class TextParameterAdmin(admin.ModelAdmin):
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
-admin.site.register(Patient, PatientAdmin)
+admin.site.register(ClinicalSample)
+admin.site.register(ClinicalSampleMetadataDict, ClinicalSampleMetadataDictAdmin)
+#admin.site.register(ClinicalSampleMetadata, ClinicalSampleMetadataAdmin)
+admin.site.register(ClinicalSampleMetadata, ClinicalSampleMetadataAdmin)
 admin.site.register(ProcessedSample)
 admin.site.register(StoredSample)
 admin.site.register(Panel, PanelAdmin)
