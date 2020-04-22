@@ -3,7 +3,7 @@
 ###########
 
 # pull official base image
-FROM python:3.8.0-alpine as builder
+FROM python:3.8-slim as builder
 
 # set work directory
 WORKDIR /usr/src/openfacstrack
@@ -13,11 +13,22 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 # install psycopg2 dependencies
-RUN apk update \
-    && apk add postgresql-dev gcc python3-dev musl-dev libffi-dev
+## install dependencies
+COPY requirements.txt .
+RUN set -ex \
+    && BUILD_DEPS=" \
+    build-essential \
+    libpcre3-dev \
+    libpq-dev \
+    " \
+    && apt-get update && apt-get install -y --no-install-recommends $BUILD_DEPS \
+    && pip wheel --no-cache-dir --no-deps --wheel-dir /usr/src/openfacstrack/wheels -r requirements.txt \
+    \
+    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false $BUILD_DEPS \
+    && rm -rf /var/lib/apt/lists/*
 
 # install pandas dependencies
-RUN apk add build-base
+#RUN apk add build-base
 
 # lint
 RUN pip install --upgrade pip
@@ -26,8 +37,8 @@ COPY . /usr/src/openfacstrack/
 RUN flake8 --ignore=E501,F401,W503 openfacstrack
 
 # install dependencies
-COPY ./requirements.txt .
-RUN pip wheel --no-cache-dir --no-deps --wheel-dir /usr/src/openfacstrack/wheels -r requirements.txt
+
+#RUN pip wheel --no-cache-dir --no-deps --wheel-dir /usr/src/openfacstrack/wheels -r requirements.txt
 
 
 #########
@@ -35,13 +46,10 @@ RUN pip wheel --no-cache-dir --no-deps --wheel-dir /usr/src/openfacstrack/wheels
 #########
 
 # pull official base image
-FROM python:3.8.0-alpine
-
-# create directory for the openfacstrack user
-RUN mkdir -p /home/openfacstrack
+FROM python:3.8-slim
 
 # create the openfacstrack user
-RUN addgroup -S openfacstrack && adduser -S openfacstrack -G openfacstrack
+RUN useradd --user-group --system --create-home --no-log-init openfacstrack
 
 # create the appropriate directories
 ENV HOME=/home/openfacstrack
@@ -51,14 +59,27 @@ RUN mkdir $APP_HOME/static
 WORKDIR $APP_HOME
 
 # install dependencies
-RUN apk update && apk add libpq
+#RUN apk update && apk add libpq libffi-dev gcc
 COPY --from=builder /usr/src/openfacstrack/wheels /wheels
 COPY --from=builder /usr/src/openfacstrack/requirements.txt .
 RUN pip install --upgrade pip
-RUN pip install --no-cache /wheels/*
+RUN set -ex \
+    && BUILD_DEPS=" \
+    build-essential \
+    libpcre3-dev \
+    libpq-dev \
+    " \
+    && apt-get update && apt-get install -y --no-install-recommends $BUILD_DEPS \
+    && pip install --no-cache /wheels/* \
+    \
+    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false $BUILD_DEPS
+
+RUN apt-get install -y netcat libpq-dev
+
+RUN rm -rf /var/lib/apt/lists/*
 
 # copy entrypoint-prod.sh
-COPY ./entrypoint.prod.sh $APP_HOME
+COPY docker/entrypoint.prod.sh $APP_HOME/entrypoint.prod.sh
 
 # copy project
 COPY . $APP_HOME

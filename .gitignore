@@ -103,6 +103,7 @@ celerybeat.pid
 
 # Environments
 docker/.env.prod
+docker/keycloak/openfacstrack-realm.prod.json
 .venv
 env/
 venv/
@@ -135,3 +136,4 @@ dmypy.json
 
 static/*
 .DS_Store
+~$population_names_200331.xlsx
