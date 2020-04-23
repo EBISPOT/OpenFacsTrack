@@ -14,6 +14,7 @@ class ClinicalSample(TimeStampedModel):
     def __str__(self):
         return "CovidID:" + self.covid_patient_id
 
+
 class ClinicalSampleMetadataDict(TimeStampedModel):
 
     name = models.CharField(max_length=255)
@@ -33,7 +34,9 @@ class ClinicalSampleMetadataDict(TimeStampedModel):
 class ClinicalSampleMetadata(TimeStampedModel):
 
     clinical_sample = models.ForeignKey(ClinicalSample, on_delete=models.CASCADE)
-    metadata_key = models.ForeignKey(ClinicalSampleMetadataDict, on_delete=models.CASCADE)
+    metadata_key = models.ForeignKey(
+        ClinicalSampleMetadataDict, on_delete=models.CASCADE
+    )
     metadata_value = models.CharField(max_length=255)
 
     def __str__(self):
@@ -93,7 +96,8 @@ class StoredSample(TimeStampedModel):
     def __str__(self):
         return ", ".join(
             [
-                "Clinical sample ID:" + self.processed_sample.clinical_sample.covid_patient_id,
+                "Clinical sample ID:"
+                + self.processed_sample.clinical_sample.covid_patient_id,
                 "Biobank ID:" + self.processed_sample.biobank_id,
                 "Date acquired:" + self.date_acquired,
                 "Stored Sample ID" + self.stored_sample_id,
@@ -112,7 +116,7 @@ class PanelMetadata(TimeStampedModel):
 
     panel = models.ForeignKey(Panel, on_delete=models.CASCADE)
     key = models.CharField(max_length=255)
-    value =models.CharField(max_length=255)
+    value = models.CharField(max_length=255)
 
     def __str__(self):
         return ", ".join(["Panel name:" + self.panel.name, "Metadata:" + self.name])
@@ -158,7 +162,8 @@ class DataProcessing(TimeStampedModel):
     def __str__(self):
         return ", ".join(
             [
-                "Clinical sample ID:" + self.processed_sample.clinical_sample.covid_patient_id,
+                "Clinical sample ID:"
+                + self.processed_sample.clinical_sample.covid_patient_id,
                 "Panel name:" + self.panel.name,
                 "FCS file:"
                 + self.fcs_file_name
@@ -177,9 +182,10 @@ class NumericParameter(TimeStampedModel):
     def __str__(self):
         return ", ".join(
             [
-                "Clinical sample ID:" + self.processed_sample.clinical_sample.covid_patient_id,
+                "Clinical sample ID:"
+                + self.processed_sample.clinical_sample.covid_patient_id,
                 "Parameter:" + self.parameter.gating_hierarchy,
-                #"Parameter:" + self.parameter.display_name,
+                # "Parameter:" + self.parameter.display_name,
                 "Value:" + str(self.value),
             ]
         )
@@ -193,7 +199,8 @@ class TextParameter(TimeStampedModel):
     def __str__(self):
         return ", ".join(
             [
-                "Clinical sample ID:" + self.processed_sample.clinical_sample.covid_patient_id,
+                "Clinical sample ID:"
+                + self.processed_sample.clinical_sample.covid_patient_id,
                 "Parameter:" + self.parameter.display_name,
                 "Value:" + self.value,
             ]

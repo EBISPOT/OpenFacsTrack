@@ -1,0 +1,64 @@
+{% extends 'track/base.html' %}
+{% block content %}
+    <h1>Processed samples</h1>
+    <div class="my-3">
+        <table id="samples"
+               data-pagination="true"
+               data-sort-name="sampleId"
+               data-sort-order="asc"
+               data-sortable="true"
+               data-search="true"
+               data-detail-view="true"
+               data-detail-formatter="detailFormatter">
+            <thead>
+            <tr>
+                <th data-sortable="true" data-field="sampleId">Clinical sample ID</th>
+                <th data-sortable="true" data-field="biobankId">Biobank ID</th>
+                <th data-sortable="true" data-field="dateAcquired">Date acquired</th>
+            </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table>
+    </div>
+    <script>
+        function detailFormatter(index, row) {
+            var html = [];
+            var notIncluded = ["sampleId", "biobankId", "dateAcquired"];
+            $.each(row, function (key, value) {
+                if (notIncluded.includes(key))
+                    return;
+                html.push('<p><b>' + key + ':</b> ' + value + '</p>')
+            });
+            return html.join('')
+        }
+
+        $(function () {
+            $('#samples').bootstrapTable({
+                data: [
+                    {% for sample in samples %}
+                        {
+                            sampleId: "{{ sample.clinical_sample.covid_patient_id }}",
+                            biobankId: "{{ sample.biobank_id }}",
+                            dateAcquired: "{{ sample.date_acquired }}",
+                            nHeparinTubes: "{{ sample.n_heparin_tubes}}",
+                            n_paxgene_tubes: "{{ sample.n_paxgene_tubes}}",
+                            bleed_time: "{{ sample.bleed_time}}",
+                            processed_time: "{{ sample.processed_time}}",
+                            blood_vol: "{{ sample.blood_vol}}",
+                            lymph_conc_as_MLNmL: "{{ sample.lymph_conc_as_MLNmL}}",
+                            total_lymph: "{{ sample.total_lymph}}",
+                            vol_frozen_mL: "{{ sample.vol_frozen_mL}}",
+                            freeze_time: "{{ sample.freeze_time}}",
+                            operator1: "{{ sample.operator1}}",
+                            operator2: "{{ sample.operator2}}",
+                            comments: "{{ sample.comments}}",
+                            real_pbmc_frozen_stock_conc_MLNmL: "{{ sample.real_pbmc_frozen_stock_conc_MLNmL }}",
+                        },
+                    {% endfor %}
+                ]
+            });
+        })
+    </script>
+{% endblock %}
