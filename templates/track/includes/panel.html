@@ -1,0 +1,32 @@
+<h2>Panel: {{ panel.name }}</h2>
+<div id="{{ panel.name }}ParametersToolbar"><h3>{{ panel.name }} parameters</h3></div>
+<table id="{{ panel.name }}Parameters"
+       data-toolbar="#{{ panel.name }}ParametersToolbar"
+       data-toggle="table"
+       data-pagination="true"
+       data-sort-name="internal-name "
+       data-sort-order="asc"
+       data-sortable="true"
+       data-search="true"
+       data-mobile-responsive="true">
+    <thead>
+    <tr>
+        <th data-sortable="true" data-field="internal-name">Internal name</th>
+        <th data-sortable="true">Public name</th>
+        <th data-sortable="true">Display name</th>
+        <th data-sortable="true">Excel column name</th>
+        <th data-sortable="true">Description</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for parameter in panel.parameter_set.all %}
+        <tr>
+            <td data-value="{{ parameter.internal_name }}">{{ parameter.internal_name }}</td>
+            <td data-value="{{ parameter.public_name }}">{{ parameter.public_name }}</td>
+            <td data-value="{{ parameter.display_name }}">{{ parameter.display_name }}</td>
+            <td data-value="{{ parameter.excel_column_name }}">{{ parameter.excel_column_name }}</td>
+            <td data-value="{{ parameter.description }}">{{ parameter.description }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>

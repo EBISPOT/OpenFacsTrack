@@ -1,9 +1,16 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
-from openfacstrack.apps.track.models import Panel
+from openfacstrack.apps.track.models import (
+    Panel,
+    ProcessedSample,
+    NumericParameter,
+    Parameter,
+)
+import json
 
 from openfacstrack.apps.track.utils import ClinicalSampleFile
+
 
 def index(request):
     return HttpResponseRedirect("/track/home/")
@@ -16,7 +23,7 @@ def home(request):
 @login_required(login_url="/track/login/")
 def upload(request):
     if request.method == "POST":
-        filepath = request.FILES.get('file')
+        filepath = request.FILES.get("file")
         clinical_sample_file = ClinicalSampleFile(filepath)
         validation_errors = clinical_sample_file.validate()
         if validation_errors:
@@ -36,9 +43,38 @@ def upload(request):
 
 @login_required(login_url="/track/login/")
 def panels_view(request):
-    panels = Panel.objects.all()
-    print(panels)
+    panels = Panel.objects.all().order_by("name")
     return render(request, "track/panels.html", {"panels": panels})
+
+
+@login_required(login_url="/track/login/")
+def samples_view(request):
+    samples = ProcessedSample.objects.all().order_by("date_acquired")
+    return render(request, "track/clinical_samples.html", {"samples": samples})
+
+
+@login_required(login_url="/track/login/")
+def observations_view(request):
+    parameters = Parameter.objects.all().order_by("panel__name")
+    if request.GET.get("parameter") is None:
+        return render(
+            request,
+            "track/observations.html",
+            {"parameters": parameters, "selected": None, "numeric": []},
+        )
+    else:
+        numeric = NumericParameter.objects.filter(
+            parameter=request.GET.get("parameter")
+        )
+        return render(
+            request,
+            "track/observations.html",
+            {
+                "parameters": parameters,
+                "selected": Parameter.objects.get(id=request.GET.get("parameter")),
+                "numeric": numeric,
+            },
+        )
 
 
 def login(request):

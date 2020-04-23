@@ -12,16 +12,16 @@
                 <span>Upload</span>
             </a>
         </li>
+{#        <li class="nav-item">#}
+{#            <a class="nav-link" href="#">#}
+{#                <i class="fas fa-hospital-user"></i>#}
+{#                Patients#}
+{#            </a>#}
+{#        </li>#}
         <li class="nav-item">
-            <a class="nav-link" href="#">
-                <i class="fas fa-hospital-user"></i>
-                Patients
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="#">
+            <a class="nav-link{% if "/samples/" in request.path %} active {% endif %}" href="/track/samples/">
                 <i class="fas fa-vials"></i>
-                Samples
+                Processed Samples
             </a>
         </li>
         <li class="nav-item">
@@ -31,7 +31,7 @@
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="#">
+            <a class="nav-link{% if "/observations/" in request.path %} active {% endif %}" href="/track/observations/">
                 <i class="fas fa-microscope"></i>
                 Observations
             </a>

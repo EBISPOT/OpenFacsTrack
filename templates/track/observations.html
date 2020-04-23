@@ -1,0 +1,48 @@
+{% extends 'track/base.html' %}
+{% block content %}
+    <select class="custom-select">
+        <option value="null">Select a Parameter</option>
+        {% for parameter in parameters %}
+            <option value="{{ parameter.id }}" {% ifequal selected parameter %}
+                    selected {% endifequal %}>{{ parameter.panel.name }} | {{ parameter.public_name }}</option>
+        {% endfor %}
+    </select>
+{% if selected != None %}
+        <table id="observations"
+           data-toggle="table"
+           data-pagination="true"
+           data-sortable="true"
+           data-search="true"
+           data-mobile-responsive="true">
+        <thead>
+        <tr>
+            <th data-sortable="true" data-field="internal-name">Sample ID</th>
+            <th data-sortable="true">Bionbank ID</th>
+            <th data-sortable="true">Date acquired</th>
+            <th data-sortable="true">Value</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for observation in numeric %}
+            <tr>
+                <td data-value="{{ observation.processed_sample.clinical_sample.covid_patient_id }}">{{ observation.processed_sample.clinical_sample.covid_patient_id }}</td>
+                <td data-value="{{ observation.processed_sample.biobank_id }}">{{ observation.processed_sample.biobank_id }}</td>
+                <td data-value="{{ observation.processed_sample.date_acquired }}">{{ observation.processed_sample.date_acquired }}</td>
+                <td data-value="{{ observation.value }}">{{ observation.value }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+
+
+    <script>
+        $('select').on('change', function (e) {
+            if (!this.value) {
+                window.location = "/track/observations";
+            } else {
+                window.location = "/track/observations?parameter=" + this.value;
+            }
+        });
+    </script>
+{% endblock %}

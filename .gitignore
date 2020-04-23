@@ -104,6 +104,7 @@ celerybeat.pid
 # Environments
 docker/.env.prod
 docker/keycloak/openfacstrack-realm.prod.json
+docker/nginx/certbot
 .venv
 env/
 venv/

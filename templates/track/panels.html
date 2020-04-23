@@ -1,6 +1,8 @@
 {% extends 'track/base.html' %}
 {% block content %}
     {% for panel in panels %}
-        {{ panel }}
+        <div class="my-3">
+            {% include "track/includes/panel.html" with panel=panel %}
+        </div>
     {% endfor %}
 {% endblock %}
