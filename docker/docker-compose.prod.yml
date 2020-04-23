@@ -14,44 +14,40 @@ services:
     env_file:
       - .env.prod
     depends_on:
-      - db
       - keycloak
+    network_mode: "host"
+
   keycloak:
     image: jboss/keycloak
     volumes:
       - ./keycloak/openfacstrack-realm.prod.json:/tmp/openfacstrack-realm.json
     env_file:
       - .env.prod
+    command: -Djgroups.bind_addr=127.0.0.1 -b=0.0.0.0
     ports:
       - 8080:8080
-    depends_on:
-      - db
-#    networks:
-#      default:
-#        aliases:
-#          - keycloak.localhost
-  db:
-    image: postgres:12.0-alpine
-    volumes:
-      - ./init.dev.sql:/docker-entrypoint-initdb.d/init.sql
-      - postgres_data:/var/lib/postgresql/data/
-    environment:
-      - POSTGRES_USER=openfacstrack
-      - POSTGRES_PASSWORD=openfacstrack
-      - POSTGRES_DB=openfacstrack
+    network_mode: "host"
+
   nginx:
     build: nginx
     volumes:
       - static_volume:/home/openfacstrack/web/static
+      - ./nginx/certbot/conf:/etc/letsencrypt
+      - ./nginx/certbot/www:/var/www/certbot
     ports:
       - 80:80
+      - 443:433
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
     depends_on:
       - web
-    networks:
-      default:
-        aliases:
-          - ng.localhost
+    network_mode: "host"
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./nginx/certbot/conf:/etc/letsencrypt
+      - ./nginx/certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
 volumes:
-  postgres_data:
   static_volume:
