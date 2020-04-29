@@ -23,17 +23,18 @@ def home(request):
 @login_required(login_url="/track/login/")
 def upload(request):
     if request.method == "POST":
-        filepath = request.FILES.get("file")
-        clinical_sample_file = ClinicalSampleFile(filepath)
+        file_name = request.FILES["file"].name
+        file_contents = request.FILES.get("file")
+        clinical_sample_file = ClinicalSampleFile(file_name, file_contents)
         validation_errors = clinical_sample_file.validate()
         if validation_errors:
             print("Validation errors, aborting upload:")
             print(validation_errors)
         else:
             try:
-                upload_issues = clinical_sample_file.upload()
-                print("Uploaded file. Issues: ")
-                print(upload_issues)
+                upload_report = clinical_sample_file.upload(commit_with_issues=True)
+                print("Uploaded file. Report: ")
+                print(upload_report)
             except Exception as e:
                 print("File not uploaded:")
                 print(str(e))
