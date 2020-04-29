@@ -31,23 +31,32 @@ class ParameterAdmin(admin.ModelAdmin):
 
 
 class PanelAdmin(admin.ModelAdmin):
-    #inlines = [PanelMetadataInline, ParameterInline]
-    inlines = [ParameterInline,]
+    # inlines = [PanelMetadataInline, ParameterInline]
+    inlines = [
+        ParameterInline,
+    ]
+
 
 class ProcessedSampleInline(admin.TabularInline):
     model = ProcessedSample
 
+
 class ClinicalSampleMetadataDictInline(admin.TabularInline):
     model = ClinicalSampleMetadataDict
+
 
 class ClinicalSampleMetadataInline(admin.TabularInline):
     model = ClinicalSampleMetadata
 
+
 class ClinicalSampleMetadataDictAdmin(admin.ModelAdmin):
     model = ClinicalSampleMetadataDict
 
+
 class ClinicalSampleMetadataAdmin(admin.ModelAdmin):
     model = ClinicalSampleMetadata
+
+
 #    inlines = [ClinicalSampleMetadataInline,]
 #    #inlines = [ClinicalSampleMetadataInline, ClinicalSampleMetadataDictInline]
 
@@ -65,9 +74,10 @@ class TextParameterAdmin(admin.ModelAdmin):
             kwargs["queryset"] = Parameter.objects.filter(data_type__exact="Text")
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
+
 admin.site.register(ClinicalSample)
 admin.site.register(ClinicalSampleMetadataDict, ClinicalSampleMetadataDictAdmin)
-#admin.site.register(ClinicalSampleMetadata, ClinicalSampleMetadataAdmin)
+# admin.site.register(ClinicalSampleMetadata, ClinicalSampleMetadataAdmin)
 admin.site.register(ClinicalSampleMetadata, ClinicalSampleMetadataAdmin)
 admin.site.register(ProcessedSample)
 admin.site.register(StoredSample)

@@ -206,10 +206,11 @@ class TextParameter(TimeStampedModel):
             ]
         )
 
+
 class UploadedFile(TimeStampedModel):
     # Not coupling to panel to make table more generic for
     # any uploaded file
-    #panel = models.ForeignKey(Panel, on_delete=models.CASCADE)
+    # panel = models.ForeignKey(Panel, on_delete=models.CASCADE)
 
     name = models.CharField(max_length=255)
     description = models.CharField(max_length=255)

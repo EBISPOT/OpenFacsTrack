@@ -7,25 +7,43 @@ import openfacstrack.apps.core.models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('track', '0001_initial'),
+        ("track", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='UploadedFile',
+            name="UploadedFile",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created', openfacstrack.apps.core.models.CreationDateTimeField(auto_now_add=True, verbose_name='created')),
-                ('modified', openfacstrack.apps.core.models.ModificationDateTimeField(auto_now=True, verbose_name='modified')),
-                ('name', models.CharField(max_length=255)),
-                ('description', models.CharField(max_length=255)),
-                ('content', models.CharField(max_length=255)),
-                ('notes', models.TextField(blank=True, default=None)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "created",
+                    openfacstrack.apps.core.models.CreationDateTimeField(
+                        auto_now_add=True, verbose_name="created"
+                    ),
+                ),
+                (
+                    "modified",
+                    openfacstrack.apps.core.models.ModificationDateTimeField(
+                        auto_now=True, verbose_name="modified"
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                ("description", models.CharField(max_length=255)),
+                ("content", models.CharField(max_length=255)),
+                ("notes", models.TextField(blank=True, default=None)),
             ],
             options={
-                'ordering': ('-modified', '-created'),
-                'get_latest_by': 'modified',
-                'abstract': False,
+                "ordering": ("-modified", "-created"),
+                "get_latest_by": "modified",
+                "abstract": False,
             },
         ),
     ]
