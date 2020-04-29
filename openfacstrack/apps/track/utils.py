@@ -1,4 +1,6 @@
+import os
 import numbers
+import base64
 from django.db import transaction
 
 import pandas as pd
@@ -15,6 +17,7 @@ from openfacstrack.apps.track.models import (
     Panel,
     NumericParameter,
     TextParameter,
+    UploadedFile,
 )
 
 
@@ -23,7 +26,7 @@ class ClinicalSampleFile:
     Uploads a file with results from clinical samples.
     """
 
-    def __init__(self, filepath):
+    def __init__(self, file_name, file_contents):
         """load contents of file into a data frame and set other attribs.
 
         Parameters
@@ -35,8 +38,9 @@ class ClinicalSampleFile:
         -------
         None
         """
-        self.filepath = filepath
-        self.df = pd.read_csv(filepath, parse_dates=["Date"])
+        self.content = file_contents
+        self.file_name = file_name
+        self.df = pd.read_csv(file_contents, parse_dates=["Date"])
 
         # List of columns always expected
         # ToDo: Find out if any of these columns are 'required' - if so
@@ -59,6 +63,9 @@ class ClinicalSampleFile:
         # Store the unique panels in the data
         # ToDo: I think there should be only one unique panel - check.
         self.panels = self.df["Panel"].unique().tolist()
+
+        # Number of rows to process
+        self.nrows = len(self.df)
 
     def validate(self):
         """Validate file for completeness of reference data
@@ -144,38 +151,57 @@ class ClinicalSampleFile:
 
         return validation_errors
 
-    def upload(self):
+    def upload(self, commit_with_issues=False):
         """Upload file to respective tables
 
         Upload data in clinical sample results for panel into the database.
         We assume that all the results here are based on one panel (ToDo: 
         need to confirm whether to throw error during validation if more
         than one panel). The upload is carried out in an atomic transaction
-        and if there are any errors nothing is written to the database.
+        and if there are any errors nothing is written to the database. If
+        the commit parameter is False nothing is written to the database.
+        This is useful to get details of any records that have issues that
+        would otherwise be missed when writing to the database.
         
         Workflow:
-            1 - covid patient IDs loaded into ClinicalSample table
+            1 - Details of the file being uploaded are written to the 
+                UploadedFile table - the ID of this file is saved so that
+                it can be stored with each record in the ProcessedSample
+                table
+            2 - covid patient IDs loaded into ClinicalSample table
                 create if they do not exist
-            2 - For each row sample metadata into ProcessedSample table
-            3 - FCS file metadata into DataProcessing table
-            4 - Parameters and counts for each sample into NumericParameter
+            3 - For each row store sample metadata in ProcessedSample 
+                table along with ID of file being uploaded (see step 1)
+            4 - FCS file metadata into DataProcessing table
+            5 - Parameters and counts for each sample into NumericParameter
         
         Parameters
         ----------
-        None
+        commit_with_issues : boolean
+            Forces write to database even if there are upload issues.
 
         Returns
         -------
-        upload_issues : dict
-            keys are types of issue, values are descriptions with row in 
-            sheet where issue occured. Empty dict is returned if there are
-            no issues
+        upload_report : dict
+            Details of how upload proceeded. Keys are:
+                success : boolean - whether upload was successful
+                rows_processed : int - No. of rows from csv file
+                rows_with_issues : int - No. of rows that had issues
+                upload_issues : dict - keys are types of issue, values are 
+                                descriptions with row in sheet where issue
+                                occured. Empty dict is returned if there 
+                                are no issues
         """
 
         # Assume all checks done - will stop and terminate upload if
         # any errors encountered
         upload_issues = {}
+        rows_with_issues = set()
         with transaction.atomic():
+
+            # ToDo: Save details of this file to database
+            uploaded_file = self._create_uploaded_file()
+            uploaded_file.save()
 
             # Ensure all sample numbers are in clinical_sample table
             clinical_samples = self.df["Clinical_sample"].unique().tolist()
@@ -197,7 +223,6 @@ class ClinicalSampleFile:
 
             parameters_pk = {}
             for parameter in self.parameter_columns:
-                # ToDo add panel to query! we want parameter for this panel
                 parameters_pk[parameter] = Parameter.objects.get(
                     gating_hierarchy=parameter, panel=panel_pk
                 ).id
@@ -212,6 +237,7 @@ class ClinicalSampleFile:
                     operator1=row["Operator name"],
                     comments=row["Comments"]
                     # ToDo: batch=row['batch']
+                    # ToDo: uploaded_file_id=self.uploaded_file_id
                 )
                 processed_sample.save()
 
@@ -244,4 +270,39 @@ class ClinicalSampleFile:
                             + " table"
                         )
                         upload_issues[key] = message
-        return upload_issues
+                        rows_with_issues.add(index)
+
+            upload_report = {
+                "rows_processed": self.nrows,
+                "rows_with_issues": len(rows_with_issues),
+                "upload_issues": upload_issues,
+            }
+            if upload_issues:
+                uploaded_file.notes = f"{upload_issues}"
+                uploaded_file.save()
+                if commit_with_issues == False:
+                    transaction.set_rollback(True)
+                    upload_report["success"] = False
+            else:
+                upload_report["success"] = True
+
+        return upload_report
+
+    def _create_uploaded_file(self):
+        """Create an instance of UploadedFile for this class' data
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        uploaded_file : object
+            Instance of UploadedFile with file for this clinical sample
+        """
+        return UploadedFile(
+            name=self.file_name,
+            description="Panel results",
+            content=base64.b64encode(self.content.read()),
+            notes="",
+        )
