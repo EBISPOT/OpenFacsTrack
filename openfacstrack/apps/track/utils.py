@@ -235,9 +235,9 @@ class ClinicalSampleFile:
                     clinical_sample_id=clinical_samples_pk[row["Clinical_sample"]],
                     date_acquired=row["Date"],
                     operator1=row["Operator name"],
-                    comments=row["Comments"]
-                    # ToDo: batch=row['batch']
-                    # ToDo: uploaded_file_id=self.uploaded_file_id
+                    comments=row["Comments"],
+                    batch=row["batch"],
+                    uploaded_file_id=uploaded_file.id,
                 )
                 processed_sample.save()
 

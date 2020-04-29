@@ -49,13 +49,35 @@ class ClinicalSampleMetadata(TimeStampedModel):
         )
 
 
+class UploadedFile(TimeStampedModel):
+    # Not coupling to panel to make table more generic for
+    # any uploaded file
+    # panel = models.ForeignKey(Panel, on_delete=models.CASCADE)
+
+    name = models.CharField(max_length=255)
+    description = models.CharField(max_length=255)
+    content = models.CharField(max_length=255)
+    notes = models.TextField(blank=True, default=None)
+
+    def __str__(self):
+        return ", ".join(
+            [
+                "File name:" + self.name,
+                "Uploaded:" + str(self.created),
+                "Description:" + self.description,
+            ]
+        )
+
+
 class ProcessedSample(TimeStampedModel):
 
     clinical_sample = models.ForeignKey(ClinicalSample, on_delete=models.CASCADE)
+    uploaded_file = models.ForeignKey(UploadedFile, on_delete=models.CASCADE)
 
     date_acquired = models.DateField()
     biobank_id = models.CharField(max_length=12)
     n_heparin_tubes = models.IntegerField(blank=True, null=True)
+    batch = models.IntegerField(blank=True, null=True)
     n_paxgene_tubes = models.IntegerField(blank=True, null=True)
     bleed_time = models.TimeField(blank=True, null=True)
     processed_time = models.TimeField(blank=True, null=True)
@@ -203,25 +225,5 @@ class TextParameter(TimeStampedModel):
                 + self.processed_sample.clinical_sample.covid_patient_id,
                 "Parameter:" + self.parameter.display_name,
                 "Value:" + self.value,
-            ]
-        )
-
-
-class UploadedFile(TimeStampedModel):
-    # Not coupling to panel to make table more generic for
-    # any uploaded file
-    # panel = models.ForeignKey(Panel, on_delete=models.CASCADE)
-
-    name = models.CharField(max_length=255)
-    description = models.CharField(max_length=255)
-    content = models.CharField(max_length=255)
-    notes = models.TextField(blank=True, default=None)
-
-    def __str__(self):
-        return ", ".join(
-            [
-                "File name:" + self.name,
-                "Uploaded:" + str(self.created),
-                "Description:" + self.description,
             ]
         )
