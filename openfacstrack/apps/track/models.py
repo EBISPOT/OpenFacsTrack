@@ -205,3 +205,22 @@ class TextParameter(TimeStampedModel):
                 "Value:" + self.value,
             ]
         )
+
+class UploadedFile(TimeStampedModel):
+    # Not coupling to panel to make table more generic for
+    # any uploaded file
+    #panel = models.ForeignKey(Panel, on_delete=models.CASCADE)
+
+    name = models.CharField(max_length=255)
+    description = models.CharField(max_length=255)
+    content = models.CharField(max_length=255)
+    notes = models.TextField(blank=True, default=None)
+
+    def __str__(self):
+        return ", ".join(
+            [
+                "File name:" + self.name,
+                "Uploaded:" + str(self.created),
+                "Description:" + self.description,
+            ]
+        )

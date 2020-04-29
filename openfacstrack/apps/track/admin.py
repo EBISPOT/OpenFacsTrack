@@ -13,6 +13,7 @@ from openfacstrack.apps.track.models import (
     DataProcessing,
     NumericParameter,
     TextParameter,
+    UploadedFile,
 )
 
 
@@ -64,7 +65,6 @@ class TextParameterAdmin(admin.ModelAdmin):
             kwargs["queryset"] = Parameter.objects.filter(data_type__exact="Text")
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
-
 admin.site.register(ClinicalSample)
 admin.site.register(ClinicalSampleMetadataDict, ClinicalSampleMetadataDictAdmin)
 #admin.site.register(ClinicalSampleMetadata, ClinicalSampleMetadataAdmin)
@@ -77,3 +77,4 @@ admin.site.register(Parameter, ParameterAdmin)
 admin.site.register(DataProcessing)
 admin.site.register(NumericParameter, NumericParameterAdmin)
 admin.site.register(TextParameter, TextParameterAdmin)
+admin.site.register(UploadedFile)
