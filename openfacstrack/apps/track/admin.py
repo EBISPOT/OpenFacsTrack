@@ -13,6 +13,7 @@ from openfacstrack.apps.track.models import (
     DataProcessing,
     NumericParameter,
     TextParameter,
+    UploadedFile,
 )
 
 
@@ -30,23 +31,32 @@ class ParameterAdmin(admin.ModelAdmin):
 
 
 class PanelAdmin(admin.ModelAdmin):
-    #inlines = [PanelMetadataInline, ParameterInline]
-    inlines = [ParameterInline,]
+    # inlines = [PanelMetadataInline, ParameterInline]
+    inlines = [
+        ParameterInline,
+    ]
+
 
 class ProcessedSampleInline(admin.TabularInline):
     model = ProcessedSample
 
+
 class ClinicalSampleMetadataDictInline(admin.TabularInline):
     model = ClinicalSampleMetadataDict
+
 
 class ClinicalSampleMetadataInline(admin.TabularInline):
     model = ClinicalSampleMetadata
 
+
 class ClinicalSampleMetadataDictAdmin(admin.ModelAdmin):
     model = ClinicalSampleMetadataDict
 
+
 class ClinicalSampleMetadataAdmin(admin.ModelAdmin):
     model = ClinicalSampleMetadata
+
+
 #    inlines = [ClinicalSampleMetadataInline,]
 #    #inlines = [ClinicalSampleMetadataInline, ClinicalSampleMetadataDictInline]
 
@@ -67,7 +77,7 @@ class TextParameterAdmin(admin.ModelAdmin):
 
 admin.site.register(ClinicalSample)
 admin.site.register(ClinicalSampleMetadataDict, ClinicalSampleMetadataDictAdmin)
-#admin.site.register(ClinicalSampleMetadata, ClinicalSampleMetadataAdmin)
+# admin.site.register(ClinicalSampleMetadata, ClinicalSampleMetadataAdmin)
 admin.site.register(ClinicalSampleMetadata, ClinicalSampleMetadataAdmin)
 admin.site.register(ProcessedSample)
 admin.site.register(StoredSample)
@@ -77,3 +87,4 @@ admin.site.register(Parameter, ParameterAdmin)
 admin.site.register(DataProcessing)
 admin.site.register(NumericParameter, NumericParameterAdmin)
 admin.site.register(TextParameter, TextParameterAdmin)
+admin.site.register(UploadedFile)
