@@ -1,0 +1,71 @@
+<div id="accordion">
+    {% if report.info%}
+        <div class="card">
+            <div class="card-header" id="infoCollapseH">
+                <h5 class="mb-0">
+                    <button class="btn btn-link text-info" data-toggle="collapse" data-target="#infoCollapse" aria-expanded="true"
+                            aria-controls="infoCollapse">
+                        Info <span class="badge badge-info">{{ report.warn | length }}</span>
+                    </button>
+                </h5>
+            </div>
+
+            <div id="infoCollapse" class="collapse" aria-labelledby="infoCollapseH" data-parent="#accordion">
+                <div class="card-body">
+                    {% for entry in report.info %}
+                        <div class="alert alert-info"
+                             role="alert">
+                            {{ entry.key }} : {{ entry.value }}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    {% if report.warn%}
+        <div class="card">
+            <div class="card-header" id="warnCollapseH">
+                <h5 class="mb-0">
+                    <button class="btn btn-link text-warning" data-toggle="collapse" data-target="#warnCollapse" aria-expanded="true"
+                            aria-controls="warnCollapse">
+                        Warnings <span class="badge badge-warning">{{ report.warn | length }}</span>
+                    </button>
+                </h5>
+            </div>
+
+            <div id="warnCollapse" class="collapse" aria-labelledby="warnCollapse" data-parent="#accordion" aria-expanded="false">
+                <div class="card-body">
+                    {% for entry in report.warn %}
+                        <div class="alert alert-warning"
+                             role="alert">
+                            {{ entry.key }} : {{ entry.value }}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    {% if report.error%}
+        <div class="card">
+            <div class="card-header" id="errorCollapseH">
+                <h5 class="mb-0">
+                    <button class="btn btn-link text-danger" data-toggle="collapse" data-target="#errorCollapse" aria-expanded="true"
+                            aria-controls="errorCollapse">
+                        Warnings <span class="badge badge-danger">{{ report.warn | length }}</span>
+                    </button>
+                </h5>
+            </div>
+
+            <div id="errorCollapse" class="collapse" aria-labelledby="errorCollapseH" data-parent="#accordion">
+                <div class="card-body">
+                    {% for entry in report.error %}
+                        <div class="alert alert-danger"
+                             role="alert">
+                            {{ entry.key }} : {{ entry.value }}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>

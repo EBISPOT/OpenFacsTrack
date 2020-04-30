@@ -14,6 +14,7 @@ from openfacstrack.apps.track.models import (
     NumericParameter,
     TextParameter,
     UploadedFile,
+    ValidationEntry,
 )
 
 
@@ -32,9 +33,7 @@ class ParameterAdmin(admin.ModelAdmin):
 
 class PanelAdmin(admin.ModelAdmin):
     # inlines = [PanelMetadataInline, ParameterInline]
-    inlines = [
-        ParameterInline,
-    ]
+    inlines = [ParameterInline]
 
 
 class ProcessedSampleInline(admin.TabularInline):
@@ -88,3 +87,4 @@ admin.site.register(DataProcessing)
 admin.site.register(NumericParameter, NumericParameterAdmin)
 admin.site.register(TextParameter, TextParameterAdmin)
 admin.site.register(UploadedFile)
+admin.site.register(ValidationEntry)

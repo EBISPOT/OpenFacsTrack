@@ -135,6 +135,7 @@ dmypy.json
 #IDE
 .idea/*
 
+uploads/*
 static/*
 .DS_Store
 ~$population_names_200331.xlsx
