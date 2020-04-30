@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.db import models
 from openfacstrack.apps.core.models import TimeStampedModel
 
@@ -49,14 +50,22 @@ class ClinicalSampleMetadata(TimeStampedModel):
         )
 
 
+def user_directory_path(instance, filename):
+    return "uploads/user_{0}/{1}".format(instance.user.id, filename)
+
+
 class UploadedFile(TimeStampedModel):
     # Not coupling to panel to make table more generic for
     # any uploaded file
     # panel = models.ForeignKey(Panel, on_delete=models.CASCADE)
 
     name = models.CharField(max_length=255)
+    user = models.ForeignKey(User, blank=True, on_delete=models.DO_NOTHING)
     description = models.CharField(max_length=255)
-    content = models.CharField(max_length=255)
+    row_number = models.IntegerField(default=0)
+    content = models.FileField(blank=True, upload_to=user_directory_path)
+    valid_syntax = models.BooleanField(default=True)
+    valid_model = models.BooleanField(default=True)
     notes = models.TextField(blank=True, default=None)
 
     def __str__(self):
@@ -65,6 +74,27 @@ class UploadedFile(TimeStampedModel):
                 "File name:" + self.name,
                 "Uploaded:" + str(self.created),
                 "Description:" + self.description,
+            ]
+        )
+
+
+class ValidationEntry(TimeStampedModel):
+    ENTRY_TYPE = [("INFO", "INFO"), ("ERROR", "ERROR"), ("WARN", "WARN")]
+    VALIDATION_TYPE = [("SYNTAX", "SYNTAX"), ("MODEL", "MODEL")]
+    subject_file = models.ForeignKey(UploadedFile, on_delete=models.CASCADE)
+    entry_type = models.CharField(max_length=12, choices=ENTRY_TYPE, default="INFO")
+    validation_type = models.CharField(
+        max_length=12, choices=VALIDATION_TYPE, default="SYNTAX"
+    )
+    key = models.CharField(max_length=240)
+    value = models.TextField()
+
+    def __str__(self):
+        return ", ".join(
+            [
+                "File ID:" + str(self.subject_file.id),
+                "Key:" + str(self.key),
+                "Value:" + str(self.value),
             ]
         )
 

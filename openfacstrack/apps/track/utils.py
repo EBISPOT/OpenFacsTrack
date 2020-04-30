@@ -1,8 +1,10 @@
 import os
 import numbers
 import base64
-from django.db import transaction
 
+from django.contrib.auth.models import User
+from django.db import transaction
+import io
 import pandas as pd
 import numpy as np
 
@@ -18,6 +20,7 @@ from openfacstrack.apps.track.models import (
     NumericParameter,
     TextParameter,
     UploadedFile,
+    ValidationEntry,
 )
 
 
@@ -26,7 +29,13 @@ class ClinicalSampleFile:
     Uploads a file with results from clinical samples.
     """
 
-    def __init__(self, file_name, file_contents):
+    def __init__(
+        self,
+        file_name=None,
+        file_contents=None,
+        uploaded_file: UploadedFile = None,
+        user: User = None,
+    ):
         """load contents of file into a data frame and set other attribs.
 
         Parameters
@@ -38,9 +47,14 @@ class ClinicalSampleFile:
         -------
         None
         """
+        if uploaded_file:
+            self.upload_file = uploaded_file
+            file_name = uploaded_file.name
+            file_contents = uploaded_file.content
+            print(file_contents)
         self.content = file_contents
         self.file_name = file_name
-        self.df = pd.read_csv(file_contents, parse_dates=["Date"])
+        self.df = pd.read_csv(self.content, parse_dates=["Date"])
 
         # List of columns always expected
         # ToDo: Find out if any of these columns are 'required' - if so
@@ -66,6 +80,16 @@ class ClinicalSampleFile:
 
         # Number of rows to process
         self.nrows = len(self.df)
+        if not uploaded_file:
+            self.upload_file = UploadedFile(
+                name=self.file_name,
+                user=user,
+                description="Panel results",
+                row_number=self.nrows,
+                content=self.content,
+                notes="",
+            )
+            self.upload_file.save()
 
     def validate(self):
         """Validate file for completeness of reference data
@@ -82,7 +106,7 @@ class ClinicalSampleFile:
         """
 
         # Start validation writing errors into dictionary/or json string?
-        validation_errors = {}
+        validation_errors = []
 
         # Check we have the expected number of columns.
         static_columns_missing = []
@@ -90,17 +114,35 @@ class ClinicalSampleFile:
             if static_column not in self.df.columns:
                 static_columns_missing.append(static_column)
         if len(static_columns_missing) > 0:
-            validation_errors["static_columns_missing"] = static_columns_missing
+            error = ValidationEntry(
+                subject_file=self.upload_file,
+                key="static_columns_missing",
+                value=static_columns_missing,
+                entry_type="ERROR",
+                validation_type="SYNTAX",
+            )
+            error.save()
+            validation_errors.append(error)
+            self.upload_file.valid_syntax = False
+            self.upload_file.save()
 
         # Check that all the info is for the same panel
         if "Panel" in self.df.columns:
             panels_in_data = self.df["Panel"].unique().tolist()
             n_unique_panels_in_data = len(panels_in_data)
             if n_unique_panels_in_data != 1:
-                validation_errors["unique_panel_error"] = (
-                    f"Expected 1 unique value for panels in each record"
-                    + f". Got {n_unique_panels_in_data}: {panels_in_data}"
+                error = ValidationEntry(
+                    subject_file=self.upload_file,
+                    key="unique_panel_error",
+                    value=f"Expected 1 unique value for panels in each record"
+                    + f". Got {n_unique_panels_in_data}: {panels_in_data}",
+                    entry_type="ERROR",
+                    validation_type="SYNTAX",
                 )
+                error.save()
+                validation_errors.append(error)
+                self.upload_file.valid_syntax = False
+                self.upload_file.save()
 
             # Check if the panel(s) are present in the Panel table
             panels_in_data_pk = []
@@ -111,10 +153,15 @@ class ClinicalSampleFile:
                 except Panel.DoesNotExist as e:
                     unknown_panels.append(panel)
             if len(unknown_panels) > 0:
-                validation_errors["unknown_panel_error"] = (
-                    "The following panels are not in Panel table: "
-                    + f"{unknown_panels}"
+                error = ValidationEntry(
+                    subject_file=self.upload_file,
+                    key="unknown_panel_error",
+                    value=f"The following panels are not in Panel table: {unknown_panels}",
+                    entry_type="WARN",
+                    validation_type="SYNTAX",
                 )
+                error.save()
+                validation_errors.append(error)
 
         else:
             # ToDo: Can we continue without unique panels?
@@ -133,9 +180,21 @@ class ClinicalSampleFile:
                 )
             except Parameter.DoesNotExist:
                 unregistered_parameters.append(parameter_column)
-
+        self.parameter_columns = [
+            column
+            for column in self.parameter_columns
+            if column not in unregistered_parameters
+        ]
         if len(unregistered_parameters) > 0:
-            validation_errors["unregistered_parameters"] = unregistered_parameters
+            error = ValidationEntry(
+                subject_file=self.upload_file,
+                key="unregistered_parameters",
+                value=unregistered_parameters,
+                entry_type="WARN",
+                validation_type="SYNTAX",
+            )
+            error.save()
+            validation_errors.append(error)
 
         # Check all fields needed for processed_sample table present
 
@@ -146,12 +205,9 @@ class ClinicalSampleFile:
 
         # Print out list of validation errors
         # print("Validation errors:")
-        # for key, value in validation_errors.items():
-        #    print(f"{key}: {value}")
-
         return validation_errors
 
-    def upload(self, commit_with_issues=False):
+    def upload(self, dry_run=False):
         """Upload file to respective tables
 
         Upload data in clinical sample results for panel into the database.
@@ -177,8 +233,8 @@ class ClinicalSampleFile:
         
         Parameters
         ----------
-        commit_with_issues : boolean
-            Forces write to database even if there are upload issues.
+        dry_run : boolean
+            Indicates it's going to attempt to do the upload without committing the changes.
 
         Returns
         -------
@@ -195,14 +251,9 @@ class ClinicalSampleFile:
 
         # Assume all checks done - will stop and terminate upload if
         # any errors encountered
-        upload_issues = {}
+        upload_issues = []
         rows_with_issues = set()
         with transaction.atomic():
-
-            # ToDo: Save details of this file to database
-            uploaded_file = self._create_uploaded_file()
-            uploaded_file.save()
-
             # Ensure all sample numbers are in clinical_sample table
             clinical_samples = self.df["Clinical_sample"].unique().tolist()
             clinical_samples_pk = {}
@@ -237,7 +288,7 @@ class ClinicalSampleFile:
                     operator1=row["Operator name"],
                     comments=row["Comments"],
                     batch=row["batch"],
-                    uploaded_file_id=uploaded_file.id,
+                    uploaded_file_id=self.upload_file.id,
                 )
                 processed_sample.save()
 
@@ -263,46 +314,29 @@ class ClinicalSampleFile:
                         numeric_parameter.save()
                     # DEBUG
                     else:
-                        key = f"row:{index} parameter:{parameter}"
-                        message = (
-                            f"Value ({row[parameter]}) not a "
+                        validation_entry = ValidationEntry(
+                            subject_file=self.upload_file,
+                            key=f"row:{index} parameter:{parameter}",
+                            value=f"Value ({row[parameter]}) not a "
                             + "number - not uploaded to NumericParameter"
-                            + " table"
+                            + " table",
+                            entry_type="WARN",
+                            validation_type="MODEL",
                         )
-                        upload_issues[key] = message
+                        upload_issues.append(validation_entry)
                         rows_with_issues.add(index)
 
             upload_report = {
                 "rows_processed": self.nrows,
                 "rows_with_issues": len(rows_with_issues),
-                "upload_issues": upload_issues,
+                "validation": upload_issues,
             }
-            if upload_issues:
-                uploaded_file.notes = f"{upload_issues}"
-                uploaded_file.save()
-                if commit_with_issues == False:
-                    transaction.set_rollback(True)
-                    upload_report["success"] = False
-            else:
-                upload_report["success"] = True
-
+            if dry_run:
+                transaction.set_rollback(True)
+        if upload_issues:
+            for issue in upload_issues:
+                issue.save()
+        else:
+            self.upload_file.valid_model = True
+            self.upload_file.save()
         return upload_report
-
-    def _create_uploaded_file(self):
-        """Create an instance of UploadedFile for this class' data
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        uploaded_file : object
-            Instance of UploadedFile with file for this clinical sample
-        """
-        return UploadedFile(
-            name=self.file_name,
-            description="Panel results",
-            content=base64.b64encode(self.content.read()),
-            notes="",
-        )

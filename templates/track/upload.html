@@ -16,5 +16,62 @@
             </form>
         </div>
     </div>
+    {% if uploaded %}
+        <h2>File validation report</h2>
+        <div class="justify-content-center my-2">
+            <h3>Syntax report</h3>
+            {% if not syntax_report %}
+                <div class="alert alert-success" role="alert">
+                    Nicely done! Your file is well constructed.
+                </div>
+            {% endif %}
+            {% if syntax_report %}
+                <div>
+                    <p class="text-warning">
+                        There were some issues parsing your file:
+                    </p>
+                </div>
+                {% include "track/includes/validation-report.html" with report=syntax_report %}
+            {% endif %}
+        </div>
+        <div class="justify-content-center my-2">
+            <h3>Database load report</h3>
+            <div class="alert alert-info" role="alert">
+                Found {{ model_report.rows_processed }} rows.
+            </div>
+            {% if not model_report.validation %}
+                <div class="alert alert-success" role="alert">
+                    Nicely done! The content of your file looks good.
+                </div>
+            {% endif %}
+            {% if model_report.validation %}
+                <div>
+                    <p class="text-warning">
+                        There were some issues trying to load your file to the database:
+                    </p>
+                </div>
+                {% include "track/includes/validation-report.html" with report=model_report.validation %}
+            {% endif %}
+        </div>
+        <div class="row justify-content-center">
+            {% if form %}
+                <form action="/track/upload/" method="post">
+                    {% csrf_token %}
+                    <div class="d-none">
+                        {{ form }}
+                    </div>
+                    <button class="btn btn-secondary" type="submit"><i class="fa fa-upload"></i>Confirm</button>
+                </form>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    {% if upload_status == "success" %}
+        <div class="row justify-content-center my-3">
+        <div class="alert alert-success">
+            File uploaded successfully! Please go to <a href="/track/observations/">Observations view</a> to see the results.
+        </div>
+        </div>
+    {% endif %}
 
 {% endblock %}

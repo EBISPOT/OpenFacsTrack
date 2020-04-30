@@ -4,19 +4,23 @@
     bottom: 0;
     top: 0;
     z-index: 100;
-    padding: 70px 0 0 0px;
+    padding: 90px 0 0 0px;
 }
 
 .left-sidebar {
     position: sticky;
     top: 0;
-    height: calc(100vh - 70px)
+    height: calc(100vh - 80px)
 }
 
 main {
-    padding-top: 90px;
+    padding-top: 100px;
 }
 
 .footer {
   background-color: #0c2c52;
+}
+
+.main-nav {
+    background-color: #91CAD1;
 }

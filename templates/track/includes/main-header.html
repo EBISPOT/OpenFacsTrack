@@ -1,5 +1,10 @@
-<nav class="navbar navbar-dark bg-primary fixed-top flex-md-nowrap py-2 shadow">
-    <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#">OpenFacsTrack</a>
+{% load static %}
+
+<nav class="navbar navbar-light main-nav fixed-top flex-md-nowrap py-2 shadow">
+    <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#">
+        <img src="{% static '/track/img/logo.png' %}" width="150px"/>
+        OpenFacsTrack
+    </a>
     <ul class="navbar-nav px-3">
         <li class="nav-item text-nowrap">
             {% if user.is_authenticated %}
