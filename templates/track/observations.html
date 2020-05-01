@@ -17,7 +17,6 @@
         <thead>
         <tr>
             <th data-sortable="true" data-field="internal-name">Sample ID</th>
-            <th data-sortable="true">Bionbank ID</th>
             <th data-sortable="true">Date acquired</th>
             <th data-sortable="true">Value</th>
         </tr>
@@ -26,8 +25,7 @@
         {% for observation in numeric %}
             <tr>
                 <td data-value="{{ observation.processed_sample.clinical_sample.covid_patient_id }}">{{ observation.processed_sample.clinical_sample.covid_patient_id }}</td>
-                <td data-value="{{ observation.processed_sample.biobank_id }}">{{ observation.processed_sample.biobank_id }}</td>
-                <td data-value="{{ observation.processed_sample.date_acquired }}">{{ observation.processed_sample.date_acquired }}</td>
+                <td data-value="{{ observation.processed_sample.date_acquired }}">{{ observation.processed_sample.date_acquired|date:"SHORT_DATE_FORMAT" }}</td>
                 <td data-value="{{ observation.value }}">{{ observation.value }}</td>
             </tr>
         {% endfor %}

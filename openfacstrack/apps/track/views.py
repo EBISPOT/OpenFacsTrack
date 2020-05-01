@@ -1,4 +1,6 @@
 from django.contrib.auth.decorators import login_required
+from django.core.serializers.json import DjangoJSONEncoder
+from django.db.models import F
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
 
@@ -9,6 +11,7 @@ from openfacstrack.apps.track.models import (
     NumericParameter,
     Parameter,
     UploadedFile,
+    DataProcessing,
 )
 import json
 
@@ -116,8 +119,28 @@ def panels_view(request):
 
 @login_required(login_url="/track/login/")
 def samples_view(request):
-    samples = ProcessedSample.objects.all().order_by("date_acquired")
-    return render(request, "track/clinical_samples.html", {"samples": samples})
+    samples = (
+        ProcessedSample.objects.all()
+        .annotate(sample_id=F("clinical_sample__covid_patient_id"))
+        .values()
+    )
+    for sample in samples:
+        panels_by_sample = DataProcessing.objects.filter(
+            processed_sample=sample["id"]
+        ).values("panel__name", "created")
+        for panel in panels_by_sample:
+            sample[panel["panel__name"]] = panel["created"]
+    panel_names = [
+        panel["name"] for panel in Panel.objects.values("name").order_by("name")
+    ]
+    table_json = json.dumps(
+        list(samples), sort_keys=True, indent=1, cls=DjangoJSONEncoder
+    )
+    return render(
+        request,
+        "track/clinical_samples.html",
+        {"panels": panel_names, "table_json": table_json},
+    )
 
 
 @login_required(login_url="/track/login/")
