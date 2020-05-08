@@ -13,12 +13,12 @@ from openfacstrack.apps.track.models import (
     Parameter,
     ProcessedSample,
     DataProcessing,
-    ClinicalSample,
-    ClinicalSampleMetadataDict,
-    ClinicalSampleMetadata,
+    Patient,
+    PatientMetadataDict,
+    PatientMetadata,
     Panel,
-    NumericParameter,
-    TextParameter,
+    NumericValue,
+    TextValue,
     UploadedFile,
     ValidationEntry,
 )
@@ -51,7 +51,7 @@ class ClinicalSampleFile:
             self.upload_file = uploaded_file
             file_name = uploaded_file.name
             file_contents = uploaded_file.content
-            print(file_contents)
+            #print(file_contents)
         self.content = file_contents
         self.file_name = file_name
         self.df = pd.read_csv(self.content, parse_dates=["Date"])
@@ -61,7 +61,7 @@ class ClinicalSampleFile:
         #       cannot continue without them.
         self.static_columns = [
             "batch",
-            "X1",
+            "filename",
             "Operator name",
             "Comments",
             "Date",
@@ -201,7 +201,7 @@ class ClinicalSampleFile:
         # Check all clinical samples present in clinical_sample table
 
         # Enter values into clinical_sample, processed_sample,
-        # numeric_parameter and text_parameter
+        # numeric_value and text_parameter
 
         # Print out list of validation errors
         # print("Validation errors:")
@@ -229,7 +229,7 @@ class ClinicalSampleFile:
             3 - For each row store sample metadata in ProcessedSample 
                 table along with ID of file being uploaded (see step 1)
             4 - FCS file metadata into DataProcessing table
-            5 - Parameters and counts for each sample into NumericParameter
+            5 - Parameters and counts for each sample into NumericValue
         
         Parameters
         ----------
@@ -306,19 +306,19 @@ class ClinicalSampleFile:
                     if isinstance(row[parameter], numbers.Number) and not np.isnan(
                         row[parameter]
                     ):
-                        numeric_parameter = NumericParameter(
+                        numeric_value = NumericValue(
                             processed_sample_id=processed_sample.id,
                             parameter_id=parameters_pk[parameter],
                             value=row[parameter],
                         )
-                        numeric_parameter.save()
+                        numeric_value.save()
                     # DEBUG
                     else:
                         validation_entry = ValidationEntry(
                             subject_file=self.upload_file,
                             key=f"row:{index} parameter:{parameter}",
                             value=f"Value ({row[parameter]}) not a "
-                            + "number - not uploaded to NumericParameter"
+                            + "number - not uploaded to NumericValue"
                             + " table",
                             entry_type="WARN",
                             validation_type="MODEL",

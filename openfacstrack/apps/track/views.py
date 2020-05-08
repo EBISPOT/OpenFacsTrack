@@ -8,7 +8,7 @@ from openfacstrack.apps.track.forms import ConfirmFileForm
 from openfacstrack.apps.track.models import (
     Panel,
     ProcessedSample,
-    NumericParameter,
+    NumericValue,
     Parameter,
     UploadedFile,
     DataProcessing,
@@ -153,7 +153,7 @@ def observations_view(request):
             {"parameters": parameters, "selected": None, "numeric": []},
         )
     else:
-        numeric = NumericParameter.objects.filter(
+        numeric = NumericValue.objects.filter(
             parameter=request.GET.get("parameter")
         )
         return render(

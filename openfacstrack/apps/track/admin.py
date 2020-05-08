@@ -5,14 +5,14 @@ from openfacstrack.apps.track.models import (
     PanelMetadata,
     Parameter,
     ProcessedSample,
-    ClinicalSample,
-    ClinicalSampleMetadataDict,
-    ClinicalSampleMetadata,
+    Patient,
+    PatientMetadataDict,
+    PatientMetadata,
     StoredSample,
     Panel,
     DataProcessing,
-    NumericParameter,
-    TextParameter,
+    NumericValue,
+    TextValue,
     UploadedFile,
     ValidationEntry,
 )
@@ -40,51 +40,51 @@ class ProcessedSampleInline(admin.TabularInline):
     model = ProcessedSample
 
 
-class ClinicalSampleMetadataDictInline(admin.TabularInline):
-    model = ClinicalSampleMetadataDict
+class PatientMetadataDictInline(admin.TabularInline):
+    model = PatientMetadataDict
 
 
-class ClinicalSampleMetadataInline(admin.TabularInline):
-    model = ClinicalSampleMetadata
+class PatientMetadataInline(admin.TabularInline):
+    model = PatientMetadata
 
 
-class ClinicalSampleMetadataDictAdmin(admin.ModelAdmin):
-    model = ClinicalSampleMetadataDict
+class PatientMetadataDictAdmin(admin.ModelAdmin):
+    model = PatientMetadataDict
 
 
-class ClinicalSampleMetadataAdmin(admin.ModelAdmin):
-    model = ClinicalSampleMetadata
+class PatientMetadataAdmin(admin.ModelAdmin):
+    model = PatientMetadata
 
 
-#    inlines = [ClinicalSampleMetadataInline,]
-#    #inlines = [ClinicalSampleMetadataInline, ClinicalSampleMetadataDictInline]
+#    inlines = [PatientMetadataInline,]
+#    #inlines = [PatientMetadataInline, PatientMetadataDictInline]
 
 
-class NumericParameterAdmin(admin.ModelAdmin):
+class NumericValueAdmin(admin.ModelAdmin):
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "parameter":
             kwargs["queryset"] = Parameter.objects.filter(data_type__exact="Numeric")
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
-class TextParameterAdmin(admin.ModelAdmin):
+class TextValueAdmin(admin.ModelAdmin):
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "parameter":
             kwargs["queryset"] = Parameter.objects.filter(data_type__exact="Text")
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
-admin.site.register(ClinicalSample)
-admin.site.register(ClinicalSampleMetadataDict, ClinicalSampleMetadataDictAdmin)
-# admin.site.register(ClinicalSampleMetadata, ClinicalSampleMetadataAdmin)
-admin.site.register(ClinicalSampleMetadata, ClinicalSampleMetadataAdmin)
+admin.site.register(Patient)
+admin.site.register(PatientMetadataDict, PatientMetadataDictAdmin)
+# admin.site.register(PatientMetadata, PatientMetadataAdmin)
+admin.site.register(PatientMetadata, PatientMetadataAdmin)
 admin.site.register(ProcessedSample)
 admin.site.register(StoredSample)
 admin.site.register(Panel, PanelAdmin)
 admin.site.register(PanelMetadata)
 admin.site.register(Parameter, ParameterAdmin)
 admin.site.register(DataProcessing)
-admin.site.register(NumericParameter, NumericParameterAdmin)
-admin.site.register(TextParameter, TextParameterAdmin)
+admin.site.register(NumericValue, NumericValueAdmin)
+admin.site.register(TextValue, TextValueAdmin)
 admin.site.register(UploadedFile)
 admin.site.register(ValidationEntry)
