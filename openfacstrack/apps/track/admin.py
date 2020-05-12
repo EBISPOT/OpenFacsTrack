@@ -74,6 +74,7 @@ class TextValueAdmin(admin.ModelAdmin):
             kwargs["queryset"] = Parameter.objects.filter(data_type__exact="Text")
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
+
 class DateValueAdmin(admin.ModelAdmin):
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "parameter":

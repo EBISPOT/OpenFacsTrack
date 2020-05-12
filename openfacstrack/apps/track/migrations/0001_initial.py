@@ -17,286 +17,732 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='DataProcessing',
+            name="DataProcessing",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created', openfacstrack.apps.core.models.CreationDateTimeField(auto_now_add=True, verbose_name='created')),
-                ('modified', openfacstrack.apps.core.models.ModificationDateTimeField(auto_now=True, verbose_name='modified')),
-                ('fcs_file_name', models.CharField(max_length=255, unique=True)),
-                ('fcs_file_location', models.CharField(max_length=255)),
-                ('is_in_FlowRepository', models.BooleanField(blank=True, null=True)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "created",
+                    openfacstrack.apps.core.models.CreationDateTimeField(
+                        auto_now_add=True, verbose_name="created"
+                    ),
+                ),
+                (
+                    "modified",
+                    openfacstrack.apps.core.models.ModificationDateTimeField(
+                        auto_now=True, verbose_name="modified"
+                    ),
+                ),
+                ("fcs_file_name", models.CharField(max_length=255, unique=True)),
+                ("fcs_file_location", models.CharField(max_length=255)),
+                ("is_in_FlowRepository", models.BooleanField(blank=True, null=True)),
             ],
             options={
-                'ordering': ('-modified', '-created'),
-                'get_latest_by': 'modified',
-                'abstract': False,
+                "ordering": ("-modified", "-created"),
+                "get_latest_by": "modified",
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='GatingStrategy',
+            name="GatingStrategy",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created', openfacstrack.apps.core.models.CreationDateTimeField(auto_now_add=True, verbose_name='created')),
-                ('modified', openfacstrack.apps.core.models.ModificationDateTimeField(auto_now=True, verbose_name='modified')),
-                ('strategy', models.CharField(max_length=100)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "created",
+                    openfacstrack.apps.core.models.CreationDateTimeField(
+                        auto_now_add=True, verbose_name="created"
+                    ),
+                ),
+                (
+                    "modified",
+                    openfacstrack.apps.core.models.ModificationDateTimeField(
+                        auto_now=True, verbose_name="modified"
+                    ),
+                ),
+                ("strategy", models.CharField(max_length=100)),
             ],
             options={
-                'ordering': ('-modified', '-created'),
-                'get_latest_by': 'modified',
-                'abstract': False,
+                "ordering": ("-modified", "-created"),
+                "get_latest_by": "modified",
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='Panel',
+            name="Panel",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created', openfacstrack.apps.core.models.CreationDateTimeField(auto_now_add=True, verbose_name='created')),
-                ('modified', openfacstrack.apps.core.models.ModificationDateTimeField(auto_now=True, verbose_name='modified')),
-                ('name', models.CharField(max_length=255)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "created",
+                    openfacstrack.apps.core.models.CreationDateTimeField(
+                        auto_now_add=True, verbose_name="created"
+                    ),
+                ),
+                (
+                    "modified",
+                    openfacstrack.apps.core.models.ModificationDateTimeField(
+                        auto_now=True, verbose_name="modified"
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
             ],
             options={
-                'ordering': ('-modified', '-created'),
-                'get_latest_by': 'modified',
-                'abstract': False,
+                "ordering": ("-modified", "-created"),
+                "get_latest_by": "modified",
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='Parameter',
+            name="Parameter",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created', openfacstrack.apps.core.models.CreationDateTimeField(auto_now_add=True, verbose_name='created')),
-                ('modified', openfacstrack.apps.core.models.ModificationDateTimeField(auto_now=True, verbose_name='modified')),
-                ('data_type', models.CharField(choices=[('PanelNumeric', 'Numeric parameter from panel'), ('SampleNumeric', 'Numeric metadata from sample'), ('DerivedNumeric', 'Numeric derived parameter from panel'), ('Text', 'Text'), ('Date', 'Date'), ('Derived', 'Derived'), ('Other', 'Other')], max_length=20)),
-                ('internal_name', models.CharField(max_length=255)),
-                ('public_name', models.CharField(max_length=255)),
-                ('display_name', models.CharField(max_length=255)),
-                ('excel_column_name', models.CharField(max_length=255)),
-                ('description', models.TextField()),
-                ('is_reference_parameter', models.BooleanField(blank=True, null=True)),
-                ('gating_hierarchy', models.TextField()),
-                ('unit', models.CharField(max_length=255)),
-                ('ancestral_population', models.CharField(max_length=255)),
-                ('population_for_counts', models.CharField(max_length=255)),
-                ('panel', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='track.Panel')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "created",
+                    openfacstrack.apps.core.models.CreationDateTimeField(
+                        auto_now_add=True, verbose_name="created"
+                    ),
+                ),
+                (
+                    "modified",
+                    openfacstrack.apps.core.models.ModificationDateTimeField(
+                        auto_now=True, verbose_name="modified"
+                    ),
+                ),
+                (
+                    "data_type",
+                    models.CharField(
+                        choices=[
+                            ("PanelNumeric", "Numeric parameter from panel"),
+                            ("SampleNumeric", "Numeric metadata from sample"),
+                            ("DerivedNumeric", "Numeric derived parameter from panel"),
+                            ("Text", "Text"),
+                            ("Date", "Date"),
+                            ("Derived", "Derived"),
+                            ("Other", "Other"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                ("internal_name", models.CharField(max_length=255)),
+                ("public_name", models.CharField(max_length=255)),
+                ("display_name", models.CharField(max_length=255)),
+                ("excel_column_name", models.CharField(max_length=255)),
+                ("description", models.TextField()),
+                ("is_reference_parameter", models.BooleanField(blank=True, null=True)),
+                ("gating_hierarchy", models.TextField()),
+                ("unit", models.CharField(max_length=255)),
+                ("ancestral_population", models.CharField(max_length=255)),
+                ("population_for_counts", models.CharField(max_length=255)),
+                (
+                    "panel",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="track.Panel"
+                    ),
+                ),
             ],
             options={
-                'ordering': ('-modified', '-created'),
-                'get_latest_by': 'modified',
-                'abstract': False,
+                "ordering": ("-modified", "-created"),
+                "get_latest_by": "modified",
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='Patient',
+            name="Patient",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created', openfacstrack.apps.core.models.CreationDateTimeField(auto_now_add=True, verbose_name='created')),
-                ('modified', openfacstrack.apps.core.models.ModificationDateTimeField(auto_now=True, verbose_name='modified')),
-                ('patient_id', models.CharField(max_length=10, unique=True)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "created",
+                    openfacstrack.apps.core.models.CreationDateTimeField(
+                        auto_now_add=True, verbose_name="created"
+                    ),
+                ),
+                (
+                    "modified",
+                    openfacstrack.apps.core.models.ModificationDateTimeField(
+                        auto_now=True, verbose_name="modified"
+                    ),
+                ),
+                ("patient_id", models.CharField(max_length=10, unique=True)),
             ],
             options={
-                'ordering': ('-modified', '-created'),
-                'get_latest_by': 'modified',
-                'abstract': False,
+                "ordering": ("-modified", "-created"),
+                "get_latest_by": "modified",
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='PatientMetadataDict',
+            name="PatientMetadataDict",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created', openfacstrack.apps.core.models.CreationDateTimeField(auto_now_add=True, verbose_name='created')),
-                ('modified', openfacstrack.apps.core.models.ModificationDateTimeField(auto_now=True, verbose_name='modified')),
-                ('name', models.CharField(max_length=255)),
-                ('description', models.CharField(max_length=255)),
-                ('notes', models.CharField(blank=True, max_length=255)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "created",
+                    openfacstrack.apps.core.models.CreationDateTimeField(
+                        auto_now_add=True, verbose_name="created"
+                    ),
+                ),
+                (
+                    "modified",
+                    openfacstrack.apps.core.models.ModificationDateTimeField(
+                        auto_now=True, verbose_name="modified"
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                ("description", models.CharField(max_length=255)),
+                ("notes", models.CharField(blank=True, max_length=255)),
             ],
             options={
-                'ordering': ('-modified', '-created'),
-                'get_latest_by': 'modified',
-                'abstract': False,
+                "ordering": ("-modified", "-created"),
+                "get_latest_by": "modified",
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='ProcessedSample',
+            name="ProcessedSample",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created', openfacstrack.apps.core.models.CreationDateTimeField(auto_now_add=True, verbose_name='created')),
-                ('modified', openfacstrack.apps.core.models.ModificationDateTimeField(auto_now=True, verbose_name='modified')),
-                ('clinical_sample_id', models.CharField(max_length=12, unique=True)),
-                ('date_acquired', models.DateField(blank=True, null=True)),
-                ('biobank_id', models.CharField(max_length=12)),
-                ('n_heparin_tubes', models.IntegerField(blank=True, null=True)),
-                ('n_paxgene_tubes', models.IntegerField(blank=True, null=True)),
-                ('bleed_time', models.TimeField(blank=True, null=True)),
-                ('processed_time', models.TimeField(blank=True, null=True)),
-                ('blood_vol', models.FloatField(blank=True, null=True)),
-                ('lymph_conc_as_MLNmL', models.FloatField(blank=True, null=True)),
-                ('total_lymph', models.FloatField(blank=True, null=True)),
-                ('vol_frozen_mL', models.FloatField(blank=True, null=True)),
-                ('freeze_time', models.TimeField(blank=True, null=True)),
-                ('comments', models.TextField()),
-                ('real_pbmc_frozen_stock_conc_MLNmL', models.FloatField(blank=True, null=True)),
-                ('patient', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='track.Patient')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "created",
+                    openfacstrack.apps.core.models.CreationDateTimeField(
+                        auto_now_add=True, verbose_name="created"
+                    ),
+                ),
+                (
+                    "modified",
+                    openfacstrack.apps.core.models.ModificationDateTimeField(
+                        auto_now=True, verbose_name="modified"
+                    ),
+                ),
+                ("clinical_sample_id", models.CharField(max_length=12, unique=True)),
+                ("date_acquired", models.DateField(blank=True, null=True)),
+                ("biobank_id", models.CharField(max_length=12)),
+                ("n_heparin_tubes", models.IntegerField(blank=True, null=True)),
+                ("n_paxgene_tubes", models.IntegerField(blank=True, null=True)),
+                ("bleed_time", models.TimeField(blank=True, null=True)),
+                ("processed_time", models.TimeField(blank=True, null=True)),
+                ("blood_vol", models.FloatField(blank=True, null=True)),
+                ("lymph_conc_as_MLNmL", models.FloatField(blank=True, null=True)),
+                ("total_lymph", models.FloatField(blank=True, null=True)),
+                ("vol_frozen_mL", models.FloatField(blank=True, null=True)),
+                ("freeze_time", models.TimeField(blank=True, null=True)),
+                ("comments", models.TextField()),
+                (
+                    "real_pbmc_frozen_stock_conc_MLNmL",
+                    models.FloatField(blank=True, null=True),
+                ),
+                (
+                    "patient",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="track.Patient"
+                    ),
+                ),
             ],
             options={
-                'ordering': ('-modified', '-created'),
-                'get_latest_by': 'modified',
-                'abstract': False,
+                "ordering": ("-modified", "-created"),
+                "get_latest_by": "modified",
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='UploadedFile',
+            name="UploadedFile",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created', openfacstrack.apps.core.models.CreationDateTimeField(auto_now_add=True, verbose_name='created')),
-                ('modified', openfacstrack.apps.core.models.ModificationDateTimeField(auto_now=True, verbose_name='modified')),
-                ('name', models.CharField(max_length=255)),
-                ('description', models.CharField(max_length=255)),
-                ('row_number', models.IntegerField(default=0)),
-                ('content', models.FileField(blank=True, upload_to=openfacstrack.apps.track.models.user_directory_path)),
-                ('valid_syntax', models.BooleanField(default=True)),
-                ('valid_model', models.BooleanField(default=True)),
-                ('notes', models.TextField(blank=True, default=None)),
-                ('content_type', models.CharField(choices=[('PANEL_RESULTS', 'Panel results'), ('PATIENT_DATA', 'Patient data'), ('OTHER', 'Other')], max_length=20)),
-                ('user', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.DO_NOTHING, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "created",
+                    openfacstrack.apps.core.models.CreationDateTimeField(
+                        auto_now_add=True, verbose_name="created"
+                    ),
+                ),
+                (
+                    "modified",
+                    openfacstrack.apps.core.models.ModificationDateTimeField(
+                        auto_now=True, verbose_name="modified"
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                ("description", models.CharField(max_length=255)),
+                ("row_number", models.IntegerField(default=0)),
+                (
+                    "content",
+                    models.FileField(
+                        blank=True,
+                        upload_to=openfacstrack.apps.track.models.user_directory_path,
+                    ),
+                ),
+                ("valid_syntax", models.BooleanField(default=True)),
+                ("valid_model", models.BooleanField(default=True)),
+                ("notes", models.TextField(blank=True, default=None)),
+                (
+                    "content_type",
+                    models.CharField(
+                        choices=[
+                            ("PANEL_RESULTS", "Panel results"),
+                            ("PATIENT_DATA", "Patient data"),
+                            ("OTHER", "Other"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        blank=True,
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'ordering': ('-modified', '-created'),
-                'get_latest_by': 'modified',
-                'abstract': False,
+                "ordering": ("-modified", "-created"),
+                "get_latest_by": "modified",
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='ValidationEntry',
+            name="ValidationEntry",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created', openfacstrack.apps.core.models.CreationDateTimeField(auto_now_add=True, verbose_name='created')),
-                ('modified', openfacstrack.apps.core.models.ModificationDateTimeField(auto_now=True, verbose_name='modified')),
-                ('entry_type', models.CharField(choices=[('INFO', 'INFO'), ('ERROR', 'ERROR'), ('WARN', 'WARN'), ('FATAL', 'FATAL')], default='INFO', max_length=12)),
-                ('validation_type', models.CharField(choices=[('SYNTAX', 'SYNTAX'), ('MODEL', 'MODEL')], default='SYNTAX', max_length=12)),
-                ('key', models.CharField(max_length=240)),
-                ('value', models.TextField()),
-                ('subject_file', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='track.UploadedFile')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "created",
+                    openfacstrack.apps.core.models.CreationDateTimeField(
+                        auto_now_add=True, verbose_name="created"
+                    ),
+                ),
+                (
+                    "modified",
+                    openfacstrack.apps.core.models.ModificationDateTimeField(
+                        auto_now=True, verbose_name="modified"
+                    ),
+                ),
+                (
+                    "entry_type",
+                    models.CharField(
+                        choices=[
+                            ("INFO", "INFO"),
+                            ("ERROR", "ERROR"),
+                            ("WARN", "WARN"),
+                            ("FATAL", "FATAL"),
+                        ],
+                        default="INFO",
+                        max_length=12,
+                    ),
+                ),
+                (
+                    "validation_type",
+                    models.CharField(
+                        choices=[("SYNTAX", "SYNTAX"), ("MODEL", "MODEL")],
+                        default="SYNTAX",
+                        max_length=12,
+                    ),
+                ),
+                ("key", models.CharField(max_length=240)),
+                ("value", models.TextField()),
+                (
+                    "subject_file",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="track.UploadedFile",
+                    ),
+                ),
             ],
             options={
-                'ordering': ('-modified', '-created'),
-                'get_latest_by': 'modified',
-                'abstract': False,
+                "ordering": ("-modified", "-created"),
+                "get_latest_by": "modified",
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='StoredSample',
+            name="StoredSample",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created', openfacstrack.apps.core.models.CreationDateTimeField(auto_now_add=True, verbose_name='created')),
-                ('modified', openfacstrack.apps.core.models.ModificationDateTimeField(auto_now=True, verbose_name='modified')),
-                ('stored_sample_id', models.CharField(max_length=10, unique=True)),
-                ('location', models.CharField(max_length=255)),
-                ('type_of_stored_material', models.CharField(max_length=255)),
-                ('from_which_tube_type', models.CharField(max_length=255)),
-                ('freezer', models.CharField(max_length=255)),
-                ('box', models.IntegerField()),
-                ('row', models.IntegerField()),
-                ('position', models.IntegerField()),
-                ('comments', models.TextField()),
-                ('processed_sample', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='track.ProcessedSample')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "created",
+                    openfacstrack.apps.core.models.CreationDateTimeField(
+                        auto_now_add=True, verbose_name="created"
+                    ),
+                ),
+                (
+                    "modified",
+                    openfacstrack.apps.core.models.ModificationDateTimeField(
+                        auto_now=True, verbose_name="modified"
+                    ),
+                ),
+                ("stored_sample_id", models.CharField(max_length=10, unique=True)),
+                ("location", models.CharField(max_length=255)),
+                ("type_of_stored_material", models.CharField(max_length=255)),
+                ("from_which_tube_type", models.CharField(max_length=255)),
+                ("freezer", models.CharField(max_length=255)),
+                ("box", models.IntegerField()),
+                ("row", models.IntegerField()),
+                ("position", models.IntegerField()),
+                ("comments", models.TextField()),
+                (
+                    "processed_sample",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="track.ProcessedSample",
+                    ),
+                ),
             ],
             options={
-                'ordering': ('-modified', '-created'),
-                'get_latest_by': 'modified',
-                'abstract': False,
+                "ordering": ("-modified", "-created"),
+                "get_latest_by": "modified",
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='Result',
+            name="Result",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created', openfacstrack.apps.core.models.CreationDateTimeField(auto_now_add=True, verbose_name='created')),
-                ('modified', openfacstrack.apps.core.models.ModificationDateTimeField(auto_now=True, verbose_name='modified')),
-                ('data_processing', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to='track.DataProcessing')),
-                ('gating_strategy', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.DO_NOTHING, to='track.GatingStrategy')),
-                ('panel', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='track.Panel')),
-                ('processed_sample', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='track.ProcessedSample')),
-                ('uploaded_file', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.DO_NOTHING, to='track.UploadedFile')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "created",
+                    openfacstrack.apps.core.models.CreationDateTimeField(
+                        auto_now_add=True, verbose_name="created"
+                    ),
+                ),
+                (
+                    "modified",
+                    openfacstrack.apps.core.models.ModificationDateTimeField(
+                        auto_now=True, verbose_name="modified"
+                    ),
+                ),
+                (
+                    "data_processing",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="track.DataProcessing",
+                    ),
+                ),
+                (
+                    "gating_strategy",
+                    models.ForeignKey(
+                        blank=True,
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        to="track.GatingStrategy",
+                    ),
+                ),
+                (
+                    "panel",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="track.Panel"
+                    ),
+                ),
+                (
+                    "processed_sample",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="track.ProcessedSample",
+                    ),
+                ),
+                (
+                    "uploaded_file",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        to="track.UploadedFile",
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('processed_sample', 'panel', 'gating_strategy', 'data_processing')},
+                "unique_together": {
+                    ("processed_sample", "panel", "gating_strategy", "data_processing")
+                },
             },
         ),
         migrations.CreateModel(
-            name='PanelMetadata',
+            name="PanelMetadata",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created', openfacstrack.apps.core.models.CreationDateTimeField(auto_now_add=True, verbose_name='created')),
-                ('modified', openfacstrack.apps.core.models.ModificationDateTimeField(auto_now=True, verbose_name='modified')),
-                ('key', models.CharField(max_length=255)),
-                ('value', models.CharField(max_length=255)),
-                ('panel', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='track.Panel')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "created",
+                    openfacstrack.apps.core.models.CreationDateTimeField(
+                        auto_now_add=True, verbose_name="created"
+                    ),
+                ),
+                (
+                    "modified",
+                    openfacstrack.apps.core.models.ModificationDateTimeField(
+                        auto_now=True, verbose_name="modified"
+                    ),
+                ),
+                ("key", models.CharField(max_length=255)),
+                ("value", models.CharField(max_length=255)),
+                (
+                    "panel",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="track.Panel"
+                    ),
+                ),
             ],
             options={
-                'ordering': ('-modified', '-created'),
-                'get_latest_by': 'modified',
-                'abstract': False,
+                "ordering": ("-modified", "-created"),
+                "get_latest_by": "modified",
+                "abstract": False,
             },
         ),
         migrations.AddField(
-            model_name='dataprocessing',
-            name='panel',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='track.Panel'),
+            model_name="dataprocessing",
+            name="panel",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to="track.Panel"
+            ),
         ),
         migrations.CreateModel(
-            name='TextValue',
+            name="TextValue",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created', openfacstrack.apps.core.models.CreationDateTimeField(auto_now_add=True, verbose_name='created')),
-                ('modified', openfacstrack.apps.core.models.ModificationDateTimeField(auto_now=True, verbose_name='modified')),
-                ('value', models.TextField(null=True)),
-                ('parameter', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='track.Parameter')),
-                ('result', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='track.Result')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "created",
+                    openfacstrack.apps.core.models.CreationDateTimeField(
+                        auto_now_add=True, verbose_name="created"
+                    ),
+                ),
+                (
+                    "modified",
+                    openfacstrack.apps.core.models.ModificationDateTimeField(
+                        auto_now=True, verbose_name="modified"
+                    ),
+                ),
+                ("value", models.TextField(null=True)),
+                (
+                    "parameter",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="track.Parameter",
+                    ),
+                ),
+                (
+                    "result",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="track.Result"
+                    ),
+                ),
             ],
-            options={
-                'unique_together': {('result', 'parameter')},
-            },
+            options={"unique_together": {("result", "parameter")},},
         ),
         migrations.CreateModel(
-            name='PatientMetadata',
+            name="PatientMetadata",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created', openfacstrack.apps.core.models.CreationDateTimeField(auto_now_add=True, verbose_name='created')),
-                ('modified', openfacstrack.apps.core.models.ModificationDateTimeField(auto_now=True, verbose_name='modified')),
-                ('metadata_value', models.CharField(max_length=255)),
-                ('metadata_key', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='track.PatientMetadataDict')),
-                ('patient', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='track.Patient')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "created",
+                    openfacstrack.apps.core.models.CreationDateTimeField(
+                        auto_now_add=True, verbose_name="created"
+                    ),
+                ),
+                (
+                    "modified",
+                    openfacstrack.apps.core.models.ModificationDateTimeField(
+                        auto_now=True, verbose_name="modified"
+                    ),
+                ),
+                ("metadata_value", models.CharField(max_length=255)),
+                (
+                    "metadata_key",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="track.PatientMetadataDict",
+                    ),
+                ),
+                (
+                    "patient",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="track.Patient"
+                    ),
+                ),
             ],
-            options={
-                'unique_together': {('patient', 'metadata_key')},
-            },
+            options={"unique_together": {("patient", "metadata_key")},},
         ),
         migrations.CreateModel(
-            name='NumericValue',
+            name="NumericValue",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created', openfacstrack.apps.core.models.CreationDateTimeField(auto_now_add=True, verbose_name='created')),
-                ('modified', openfacstrack.apps.core.models.ModificationDateTimeField(auto_now=True, verbose_name='modified')),
-                ('value', models.FloatField(null=True)),
-                ('parameter', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='track.Parameter')),
-                ('result', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='track.Result')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "created",
+                    openfacstrack.apps.core.models.CreationDateTimeField(
+                        auto_now_add=True, verbose_name="created"
+                    ),
+                ),
+                (
+                    "modified",
+                    openfacstrack.apps.core.models.ModificationDateTimeField(
+                        auto_now=True, verbose_name="modified"
+                    ),
+                ),
+                ("value", models.FloatField(null=True)),
+                (
+                    "parameter",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="track.Parameter",
+                    ),
+                ),
+                (
+                    "result",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="track.Result"
+                    ),
+                ),
             ],
-            options={
-                'unique_together': {('result', 'parameter')},
-            },
+            options={"unique_together": {("result", "parameter")},},
         ),
         migrations.CreateModel(
-            name='DateValue',
+            name="DateValue",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created', openfacstrack.apps.core.models.CreationDateTimeField(auto_now_add=True, verbose_name='created')),
-                ('modified', openfacstrack.apps.core.models.ModificationDateTimeField(auto_now=True, verbose_name='modified')),
-                ('value', models.DateField(null=True)),
-                ('parameter', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='track.Parameter')),
-                ('result', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='track.Result')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "created",
+                    openfacstrack.apps.core.models.CreationDateTimeField(
+                        auto_now_add=True, verbose_name="created"
+                    ),
+                ),
+                (
+                    "modified",
+                    openfacstrack.apps.core.models.ModificationDateTimeField(
+                        auto_now=True, verbose_name="modified"
+                    ),
+                ),
+                ("value", models.DateField(null=True)),
+                (
+                    "parameter",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="track.Parameter",
+                    ),
+                ),
+                (
+                    "result",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="track.Result"
+                    ),
+                ),
             ],
-            options={
-                'unique_together': {('result', 'parameter')},
-            },
+            options={"unique_together": {("result", "parameter")},},
         ),
     ]

@@ -55,11 +55,13 @@ class ClinicalSampleFile:
             self.upload_file = uploaded_file
             file_name = uploaded_file.name
             file_contents = uploaded_file.content
-            #print(file_contents)
+            # print(file_contents)
         self.content = file_contents
         self.file_name = file_name
         self.gating_strategy = gating_strategy
-        self.df = pd.read_csv(self.content, dtype={"Comments": str,}, parse_dates=["Date"])
+        self.df = pd.read_csv(
+            self.content, dtype={"Comments": str,}, parse_dates=["Date"]
+        )
 
         # List of columns always expected
         # ToDo: Find out if any of these columns are 'required' - if so
@@ -86,7 +88,6 @@ class ClinicalSampleFile:
             self.sc_comments,
             self.sc_date,
         ]
-
 
         # Compute names of parameters present. These are all the other
         # columns in the file that are not in the static_columns list
@@ -308,9 +309,9 @@ class ClinicalSampleFile:
             # Ensure all sample numbers are in processed_sample table
             # and respective records for patients exist
             sample_ids = self.df[self.sc_clinical_sample].unique().tolist()
-            patient_ids = [str(s_id).split('n')[0] for s_id in sample_ids]
+            patient_ids = [str(s_id).split("n")[0] for s_id in sample_ids]
             processed_sample_pks = {}
-            for patient_id, sample_id in zip(patient_ids,sample_ids):
+            for patient_id, sample_id in zip(patient_ids, sample_ids):
                 patient = Patient.objects.get_or_create(patient_id=patient_id)[0]
                 processed_sample = ProcessedSample.objects.get_or_create(
                     clinical_sample_id=sample_id, patient=patient
@@ -329,22 +330,25 @@ class ClinicalSampleFile:
             parameters_pk = {}
             for parameter in self.parameter_columns:
                 parameters_pk[parameter] = Parameter.objects.get(
-                    gating_hierarchy=parameter).id
+                    gating_hierarchy=parameter
+                ).id
 
             # Ditto for pseudo parameters (date, text, numeric)
             pseudo_parameters_pk = {}
             for column, parameter in self.pseudo_parameters_numeric:
-                pseudo_parameters_pk[parameter] = \
-                    Parameter.objects.get(gating_hierarchy=parameter).id
+                pseudo_parameters_pk[parameter] = Parameter.objects.get(
+                    gating_hierarchy=parameter
+                ).id
 
             for column, parameter in self.pseudo_parameters_date:
-                pseudo_parameters_pk[parameter] = \
-                    Parameter.objects.get(gating_hierarchy=parameter).id
+                pseudo_parameters_pk[parameter] = Parameter.objects.get(
+                    gating_hierarchy=parameter
+                ).id
 
             for column, parameter in self.pseudo_parameters_text:
-                pseudo_parameters_pk[parameter] = \
-                    Parameter.objects.get(gating_hierarchy=parameter).id
-
+                pseudo_parameters_pk[parameter] = Parameter.objects.get(
+                    gating_hierarchy=parameter
+                ).id
 
             # Store details in relevant tables
             for index, row in self.df.iterrows():
@@ -353,58 +357,56 @@ class ClinicalSampleFile:
                 sample_id = row[self.sc_clinical_sample]
                 if sample_id[0].upper() != "P" or len(sample_id) < 4:
                     validation_entry = ValidationEntry(
-                            subject_file=self.upload_file,
-                            key=f"row:{index} field:Clinical_sample",
-                            value=f"Value ({sample_id}) not a valid "
-                            + "clinical sample id. Expected pxxxnxx. "
-                            + "All entries for this row not loaded.",
-                            entry_type="WARN",
-                            validation_type="MODEL",
-                        )
+                        subject_file=self.upload_file,
+                        key=f"row:{index} field:Clinical_sample",
+                        value=f"Value ({sample_id}) not a valid "
+                        + "clinical sample id. Expected pxxxnxx. "
+                        + "All entries for this row not loaded.",
+                        entry_type="WARN",
+                        validation_type="MODEL",
+                    )
                     upload_issues.append(validation_entry)
                     rows_with_issues.add(index)
                     continue
-    
+
                 # Data processing details
-                fcs_file_name=row[self.sc_filename]
+                fcs_file_name = row[self.sc_filename]
                 if type(fcs_file_name) == str and fcs_file_name.find(sample_id) >= 0:
                     data_processing, created = DataProcessing.objects.get_or_create(
-                        fcs_file_name=fcs_file_name,
-                        panel_id=panels_pk[row["Panel"]],
+                        fcs_file_name=fcs_file_name, panel_id=panels_pk[row["Panel"]],
                     )
                 else:
                     validation_entry = ValidationEntry(
                         subject_file=self.upload_file,
                         key=f"row:{index} field:{self.sc_filename}",
                         value=f"Value {fcs_file_name} does not contain the"
-                            + " sample ID ({sample_id}) - row not loaded ",
-                            entry_type="WARN",
-                            validation_type="MODEL",
+                        + " sample ID ({sample_id}) - row not loaded ",
+                        entry_type="WARN",
+                        validation_type="MODEL",
                     )
                     upload_issues.append(validation_entry)
                     rows_with_issues.add(index)
- 
+
                 # Create an entry in the results table
                 result = Result.objects.get_or_create(
                     processed_sample_id=processed_sample_pks[sample_id],
                     gating_strategy=self.gating_strategy,
                     panel_id=panel_pk,
-                    data_processing=data_processing
+                    data_processing=data_processing,
                 )[0]
                 result.uploaded_file = self.upload_file
                 result.save()
 
-
                 # Store data for parameters
                 # Currently assuming all parameters are numeric
                 for parameter, parameter_pk in parameters_pk.items():
-                    if isinstance(row[parameter], numbers.Number) \
-                        and not np.isnan(row[parameter]): 
+                    if isinstance(row[parameter], numbers.Number) and not np.isnan(
+                        row[parameter]
+                    ):
                         numeric_value, created = NumericValue.objects.get_or_create(
-                            result_id=result.id,
-                            parameter_id=parameters_pk[parameter],
+                            result_id=result.id, parameter_id=parameters_pk[parameter],
                         )
-                        numeric_value.value=row[parameter]
+                        numeric_value.value = row[parameter]
                         numeric_value.save()
                     # DEBUG
                     else:
@@ -419,18 +421,17 @@ class ClinicalSampleFile:
                         )
                         upload_issues.append(validation_entry)
                         rows_with_issues.add(index)
-                
+
                 # Store numeric pseudo parameters
                 for column, parameter in self.pseudo_parameters_numeric:
                     if column in self.df.columns:
                         value = row[column]
-                        if isinstance(value, numbers.Number) \
-                                and not np.isnan(value): 
+                        if isinstance(value, numbers.Number) and not np.isnan(value):
                             numeric_value, created = NumericValue.objects.get_or_create(
                                 result_id=result.id,
                                 parameter_id=pseudo_parameters_pk[parameter],
                             )
-                            numeric_value.value=value
+                            numeric_value.value = value
                             numeric_value.save()
                         else:
                             validation_entry = ValidationEntry(
@@ -449,13 +450,12 @@ class ClinicalSampleFile:
                 for column, parameter in self.pseudo_parameters_date:
                     if column in self.df.columns:
                         value = row[column]
-                        if isinstance(value, pd.Timestamp) \
-                                and not pd.isnull(value): 
+                        if isinstance(value, pd.Timestamp) and not pd.isnull(value):
                             date_value, created = DateValue.objects.get_or_create(
                                 result_id=result.id,
                                 parameter_id=pseudo_parameters_pk[parameter],
                             )
-                            date_value.value=value
+                            date_value.value = value
                             date_value.save()
                         else:
                             validation_entry = ValidationEntry(
@@ -474,12 +474,12 @@ class ClinicalSampleFile:
                 for column, parameter in self.pseudo_parameters_text:
                     if column in self.df.columns:
                         value = str(row[column]).strip()
-                        if len(value) > 0 and value != "nan": 
+                        if len(value) > 0 and value != "nan":
                             text_value, created = TextValue.objects.get_or_create(
                                 result_id=result.id,
                                 parameter_id=pseudo_parameters_pk[parameter],
                             )
-                            text_value.value=value
+                            text_value.value = value
                             text_value.save()
 
             upload_report = {

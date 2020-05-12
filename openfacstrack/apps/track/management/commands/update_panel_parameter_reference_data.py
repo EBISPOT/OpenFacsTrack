@@ -58,12 +58,11 @@ class Command(BaseCommand):
                     # Name of the pseudoparameter is stored in gating hierarchy
                     gating_hierarchy = f"{panel_name}_{param_name}"
                     parameter, created = Parameter.objects.get_or_create(
-                        gating_hierarchy=gating_hierarchy,
-                        panel=panel
+                        gating_hierarchy=gating_hierarchy, panel=panel
                     )
                     if created:
-                        parameter.data_type = param_values['data_type']
-                        parameter.description = param_values['description']
+                        parameter.data_type = param_values["data_type"]
+                        parameter.description = param_values["description"]
                         parameter.internal_name = gating_hierarchy
                         parameter.public_name = gating_hierarchy
                     parameter.save()
@@ -90,7 +89,7 @@ class Command(BaseCommand):
                 parameter.data_type = "PanelNumeric"
                 # What is 'ancestral population when preseneted as fraction' ?
                 parameter.save()
-                #print(parameter)
+                # print(parameter)
 
     def _valid(self, value):
         """Check if a value is valid - not empty, nan or NA"""

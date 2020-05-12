@@ -33,13 +33,11 @@ class PatientMetadataDict(TimeStampedModel):
 
 
 class PatientMetadata(TimeStampedModel):
-
     class Meta:
         unique_together = (("patient", "metadata_key"),)
+
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
-    metadata_key = models.ForeignKey(
-        PatientMetadataDict, on_delete=models.CASCADE
-    )
+    metadata_key = models.ForeignKey(PatientMetadataDict, on_delete=models.CASCADE)
     metadata_value = models.CharField(max_length=255)
 
     def __str__(self):
@@ -83,7 +81,12 @@ class UploadedFile(TimeStampedModel):
 
 
 class ValidationEntry(TimeStampedModel):
-    ENTRY_TYPE = [("INFO", "INFO"), ("ERROR", "ERROR"), ("WARN", "WARN"),("FATAL","FATAL")]
+    ENTRY_TYPE = [
+        ("INFO", "INFO"),
+        ("ERROR", "ERROR"),
+        ("WARN", "WARN"),
+        ("FATAL", "FATAL"),
+    ]
     VALIDATION_TYPE = [("SYNTAX", "SYNTAX"), ("MODEL", "MODEL")]
     subject_file = models.ForeignKey(UploadedFile, on_delete=models.CASCADE)
     entry_type = models.CharField(max_length=12, choices=ENTRY_TYPE, default="INFO")
@@ -122,7 +125,7 @@ class ProcessedSample(TimeStampedModel):
     total_lymph = models.FloatField(blank=True, null=True)
     vol_frozen_mL = models.FloatField(blank=True, null=True)
     freeze_time = models.TimeField(blank=True, null=True)
-    #This is to store comments about the sample - not about panel results!
+    # This is to store comments about the sample - not about panel results!
     comments = models.TextField()
     real_pbmc_frozen_stock_conc_MLNmL = models.FloatField(blank=True, null=True)
 
@@ -153,26 +156,35 @@ class StoredSample(TimeStampedModel):
     def __str__(self):
         return ", ".join(
             [
-                "Clinical sample ID:"
-                + self.processed_sample.clinical_sample_id,
+                "Clinical sample ID:" + self.processed_sample.clinical_sample_id,
                 "Biobank ID:" + self.processed_sample.biobank_id,
                 "Date acquired:" + self.date_acquired,
                 "Stored Sample ID" + self.stored_sample_id,
             ]
         )
 
+
 class Result(TimeStampedModel):
     class Meta:
-        unique_together = (("processed_sample", "panel", "gating_strategy", "data_processing"))
-        
+        unique_together = (
+            "processed_sample",
+            "panel",
+            "gating_strategy",
+            "data_processing",
+        )
+
     processed_sample = models.ForeignKey(ProcessedSample, on_delete=models.CASCADE)
-    uploaded_file = models.ForeignKey(UploadedFile, on_delete=models.DO_NOTHING, null=True, blank=True)
+    uploaded_file = models.ForeignKey(
+        UploadedFile, on_delete=models.DO_NOTHING, null=True, blank=True
+    )
     panel = models.ForeignKey("Panel", on_delete=models.CASCADE)
-    gating_strategy = models.ForeignKey("GatingStrategy", blank=True, on_delete=models.DO_NOTHING)
+    gating_strategy = models.ForeignKey(
+        "GatingStrategy", blank=True, on_delete=models.DO_NOTHING
+    )
     data_processing = models.OneToOneField("DataProcessing", on_delete=models.CASCADE)
 
     def __str__(self):
-        return ", ". join(
+        return ", ".join(
             [
                 "Clinical sample ID:" + self.processed_sample.clinical_sample_id,
                 "Panel:" + self.panel.name,
@@ -180,7 +192,6 @@ class Result(TimeStampedModel):
             ]
         )
 
-    
 
 class Panel(TimeStampedModel):
     name = models.CharField(max_length=255)
@@ -201,13 +212,15 @@ class PanelMetadata(TimeStampedModel):
 
 class Parameter(TimeStampedModel):
 
-    DATA_TYPE = [("PanelNumeric", "Numeric parameter from panel"),
-                 ("SampleNumeric", "Numeric metadata from sample"),
-                 ("DerivedNumeric", "Numeric derived parameter from panel"),
-                 ("Text", "Text"),
-                 ("Date", "Date"),
-                 ("Derived", "Derived"),
-                 ("Other", "Other"),]
+    DATA_TYPE = [
+        ("PanelNumeric", "Numeric parameter from panel"),
+        ("SampleNumeric", "Numeric metadata from sample"),
+        ("DerivedNumeric", "Numeric derived parameter from panel"),
+        ("Text", "Text"),
+        ("Date", "Date"),
+        ("Derived", "Derived"),
+        ("Other", "Other"),
+    ]
 
     panel = models.ForeignKey(Panel, on_delete=models.CASCADE)
 
@@ -242,7 +255,7 @@ class DataProcessing(TimeStampedModel):
     fcs_file_name = models.CharField(max_length=255, unique=True)
     fcs_file_location = models.CharField(max_length=255)
     is_in_FlowRepository = models.BooleanField(blank=True, null=True)
-    #is_automated_gating_done = models.BooleanField(blank=True, null=True)
+    # is_automated_gating_done = models.BooleanField(blank=True, null=True)
 
     def __str__(self):
         return ", ".join(
@@ -258,9 +271,8 @@ class DataProcessing(TimeStampedModel):
 
 
 class NumericValue(TimeStampedModel):
-    
     class Meta:
-        unique_together = (("result", "parameter"))
+        unique_together = ("result", "parameter")
 
     result = models.ForeignKey(Result, on_delete=models.CASCADE)
     parameter = models.ForeignKey(Parameter, on_delete=models.CASCADE)
@@ -269,8 +281,7 @@ class NumericValue(TimeStampedModel):
     def __str__(self):
         return ", ".join(
             [
-                "Clinical sample ID:"
-                + self.result.processed_sample.clinical_sample_id,
+                "Clinical sample ID:" + self.result.processed_sample.clinical_sample_id,
                 "Parameter:" + self.parameter.gating_hierarchy,
                 # "Parameter:" + self.parameter.display_name,
                 "Value:" + str(self.value),
@@ -279,9 +290,8 @@ class NumericValue(TimeStampedModel):
 
 
 class TextValue(TimeStampedModel):
-    
     class Meta:
-        unique_together = (("result", "parameter"))
+        unique_together = ("result", "parameter")
 
     result = models.ForeignKey(Result, on_delete=models.CASCADE)
     parameter = models.ForeignKey(Parameter, on_delete=models.CASCADE)
@@ -290,17 +300,16 @@ class TextValue(TimeStampedModel):
     def __str__(self):
         return ", ".join(
             [
-                "Clinical sample ID:"
-                + self.result.processed_sample.clinical_sample_id,
+                "Clinical sample ID:" + self.result.processed_sample.clinical_sample_id,
                 "Parameter:" + self.parameter.display_name,
                 "Value:" + self.value,
             ]
         )
 
+
 class DateValue(TimeStampedModel):
-    
     class Meta:
-        unique_together = (("result", "parameter"))
+        unique_together = ("result", "parameter")
 
     result = models.ForeignKey(Result, on_delete=models.CASCADE)
     parameter = models.ForeignKey(Parameter, on_delete=models.CASCADE)
@@ -309,13 +318,12 @@ class DateValue(TimeStampedModel):
     def __str__(self):
         return ", ".join(
             [
-                "Clinical sample ID:"
-                + self.result.processed_sample.clinical_sample_id,
+                "Clinical sample ID:" + self.result.processed_sample.clinical_sample_id,
                 "Parameter:" + self.parameter.display_name,
                 "Value:" + self.value.strftime("%d/%m/%Y"),
             ]
         )
 
+
 class GatingStrategy(TimeStampedModel):
     strategy = models.CharField(max_length=100)
-    

@@ -37,7 +37,10 @@ def upload(request):
             file_name = request.FILES["file"].name
             file_contents = request.FILES.get("file")
             clinical_sample_file = ClinicalSampleFile(
-                file_name, file_contents, user=request.user, gating_strategy=gating_strategy
+                file_name,
+                file_contents,
+                user=request.user,
+                gating_strategy=gating_strategy,
             )
             validation_errors = clinical_sample_file.validate()
             if validation_errors:
@@ -108,7 +111,9 @@ def upload(request):
                 pk=ConfirmFileForm(request.POST).data.get("file_id")
             )
             clinical_sample_file = ClinicalSampleFile(
-                user=request.user, uploaded_file=uploaded_file, gating_strategy=gating_strategy
+                user=request.user,
+                uploaded_file=uploaded_file,
+                gating_strategy=gating_strategy,
             )
             clinical_sample_file.validate()
             clinical_sample_file.upload()
@@ -158,9 +163,7 @@ def observations_view(request):
             {"parameters": parameters, "selected": None, "numeric": []},
         )
     else:
-        numeric = NumericValue.objects.filter(
-            parameter=request.GET.get("parameter")
-        )
+        numeric = NumericValue.objects.filter(parameter=request.GET.get("parameter"))
         return render(
             request,
             "track/observations.html",
