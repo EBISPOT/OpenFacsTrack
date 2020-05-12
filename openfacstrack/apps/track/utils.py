@@ -12,6 +12,7 @@ from openfacstrack.apps.track.models import (
     PanelMetadata,
     Parameter,
     ProcessedSample,
+    Result,
     DataProcessing,
     Patient,
     PatientMetadataDict,
@@ -19,8 +20,10 @@ from openfacstrack.apps.track.models import (
     Panel,
     NumericValue,
     TextValue,
+    DateValue,
     UploadedFile,
     ValidationEntry,
+    GatingStrategy,
 )
 
 
@@ -35,6 +38,7 @@ class ClinicalSampleFile:
         file_contents=None,
         uploaded_file: UploadedFile = None,
         user: User = None,
+        gating_strategy: GatingStrategy = None,
     ):
         """load contents of file into a data frame and set other attribs.
 
@@ -54,29 +58,58 @@ class ClinicalSampleFile:
             #print(file_contents)
         self.content = file_contents
         self.file_name = file_name
-        self.df = pd.read_csv(self.content, parse_dates=["Date"])
+        self.gating_strategy = gating_strategy
+        self.df = pd.read_csv(self.content, dtype={"Comments": str,}, parse_dates=["Date"])
 
         # List of columns always expected
         # ToDo: Find out if any of these columns are 'required' - if so
         #       cannot continue without them.
-        self.static_columns = [
-            "batch",
-            "filename",
-            "Operator name",
-            "Comments",
-            "Date",
-            "Panel",
-            "Clinical_sample",
+
+        # Use variables to store static_column names in case they change
+        # in future
+        self.sc_panel = "Panel"
+        self.sc_clinical_sample = "Clinical_sample"
+        self.sc_filename = "filename"
+        self.sc_operator1 = "Operator name"
+        self.sc_comments = "Comments"
+        self.sc_batch = "batch"
+        self.sc_date = "Date"
+        self.required_columns = [
+            self.sc_filename,
+            self.sc_panel,
+            self.sc_clinical_sample,
         ]
+
+        self.static_columns = [
+            self.sc_batch,
+            self.sc_operator1,
+            self.sc_comments,
+            self.sc_date,
+        ]
+
 
         # Compute names of parameters present. These are all the other
         # columns in the file that are not in the static_columns list
         parameter_columns = set(self.df.columns) - set(self.static_columns)
+        parameter_columns -= set(self.required_columns)
         self.parameter_columns = list(parameter_columns)
 
         # Store the unique panels in the data
         # ToDo: I think there should be only one unique panel - check.
         self.panels = self.df["Panel"].unique().tolist()
+        self.panel_name = self.panels[0].upper()
+
+        # Names for pseudo parameters (parameters computed from data)
+        self.pseudo_parameters_numeric = [
+            (self.sc_batch, f"{self.panel_name}_batch"),
+            (self.sc_operator1, f"{self.panel_name}_operator_1"),
+        ]
+        self.pseudo_parameters_date = [
+            (self.sc_date, f"{self.panel_name}_date_processed"),
+        ]
+        self.pseudo_parameters_text = [
+            (self.sc_comments, f"{self.panel_name}_comments"),
+        ]
 
         # Number of rows to process
         self.nrows = len(self.df)
@@ -107,6 +140,24 @@ class ClinicalSampleFile:
 
         # Start validation writing errors into dictionary/or json string?
         validation_errors = []
+
+        # Check we have the required columns needed for upload to proceed.
+        required_columns_missing = []
+        for required_column in self.required_columns:
+            if required_column not in self.df.columns:
+                required_columns_missing.append(required_column)
+        if len(required_columns_missing) > 0:
+            error = ValidationEntry(
+                subject_file=self.upload_file,
+                key="required_columns_missing",
+                value=required_columns_missing,
+                entry_type="FATAL",
+                validation_type="SYNTAX",
+            )
+            error.save()
+            validation_errors.append(error)
+            self.upload_file.valid_syntax = False
+            self.upload_file.save()
 
         # Check we have the expected number of columns.
         static_columns_missing = []
@@ -198,9 +249,9 @@ class ClinicalSampleFile:
 
         # Check all fields needed for processed_sample table present
 
-        # Check all clinical samples present in clinical_sample table
+        # Check all clinical samples present in processed_sample table
 
-        # Enter values into clinical_sample, processed_sample,
+        # Enter values into processed_sample, processed_sample,
         # numeric_value and text_parameter
 
         # Print out list of validation errors
@@ -254,63 +305,106 @@ class ClinicalSampleFile:
         upload_issues = []
         rows_with_issues = set()
         with transaction.atomic():
-            # Ensure all sample numbers are in clinical_sample table
-            clinical_samples = self.df["Clinical_sample"].unique().tolist()
-            clinical_samples_pk = {}
-            for sample in clinical_samples:
-                clinical_sample = ClinicalSample.objects.get_or_create(
-                    covid_patient_id=sample
+            # Ensure all sample numbers are in processed_sample table
+            # and respective records for patients exist
+            sample_ids = self.df[self.sc_clinical_sample].unique().tolist()
+            patient_ids = [str(s_id).split('n')[0] for s_id in sample_ids]
+            processed_sample_pks = {}
+            for patient_id, sample_id in zip(patient_ids,sample_ids):
+                patient = Patient.objects.get_or_create(patient_id=patient_id)[0]
+                processed_sample = ProcessedSample.objects.get_or_create(
+                    clinical_sample_id=sample_id, patient=patient
                 )[0]
-                clinical_samples_pk[sample] = clinical_sample.pk
+                processed_sample_pks[sample_id] = processed_sample.pk
 
             # Get the panel(s) pks
             panels_pk = {}
             for panel in self.panels:
                 panels_pk[panel] = Panel.objects.get(name=panel.upper()).id
 
-            # Store first panel primary key for obtaining parameters for
-            # this panel
+            # Store first panel primary key for use later
             panel_pk = panels_pk[self.panels[0]]
 
+            # Get parameter_ids for NumericParameters
             parameters_pk = {}
             for parameter in self.parameter_columns:
                 parameters_pk[parameter] = Parameter.objects.get(
-                    gating_hierarchy=parameter, panel=panel_pk
-                ).id
+                    gating_hierarchy=parameter).id
+
+            # Ditto for pseudo parameters (date, text, numeric)
+            pseudo_parameters_pk = {}
+            for column, parameter in self.pseudo_parameters_numeric:
+                pseudo_parameters_pk[parameter] = \
+                    Parameter.objects.get(gating_hierarchy=parameter).id
+
+            for column, parameter in self.pseudo_parameters_date:
+                pseudo_parameters_pk[parameter] = \
+                    Parameter.objects.get(gating_hierarchy=parameter).id
+
+            for column, parameter in self.pseudo_parameters_text:
+                pseudo_parameters_pk[parameter] = \
+                    Parameter.objects.get(gating_hierarchy=parameter).id
+
 
             # Store details in relevant tables
             for index, row in self.df.iterrows():
 
-                # Processed sample details
-                processed_sample = ProcessedSample(
-                    clinical_sample_id=clinical_samples_pk[row["Clinical_sample"]],
-                    date_acquired=row["Date"],
-                    operator1=row["Operator name"],
-                    comments=row["Comments"],
-                    batch=row["batch"],
-                    uploaded_file_id=self.upload_file.id,
-                )
-                processed_sample.save()
-
+                # Only proceed if sample_id is valid
+                sample_id = row[self.sc_clinical_sample]
+                if sample_id[0].upper() != "P" or len(sample_id) < 4:
+                    validation_entry = ValidationEntry(
+                            subject_file=self.upload_file,
+                            key=f"row:{index} field:Clinical_sample",
+                            value=f"Value ({sample_id}) not a valid "
+                            + "clinical sample id. Expected pxxxnxx. "
+                            + "All entries for this row not loaded.",
+                            entry_type="WARN",
+                            validation_type="MODEL",
+                        )
+                    upload_issues.append(validation_entry)
+                    rows_with_issues.add(index)
+                    continue
+    
                 # Data processing details
-                data_processing = DataProcessing(
-                    processed_sample_id=processed_sample.id,
-                    fcs_file_name=row["X1"],
-                    panel_id=panels_pk[row["Panel"]],
-                )
-                data_processing.save()
+                fcs_file_name=row[self.sc_filename]
+                if type(fcs_file_name) == str and fcs_file_name.find(sample_id) >= 0:
+                    data_processing, created = DataProcessing.objects.get_or_create(
+                        fcs_file_name=fcs_file_name,
+                        panel_id=panels_pk[row["Panel"]],
+                    )
+                else:
+                    validation_entry = ValidationEntry(
+                        subject_file=self.upload_file,
+                        key=f"row:{index} field:{self.sc_filename}",
+                        value=f"Value {fcs_file_name} does not contain the"
+                            + " sample ID ({sample_id}) - row not loaded ",
+                            entry_type="WARN",
+                            validation_type="MODEL",
+                    )
+                    upload_issues.append(validation_entry)
+                    rows_with_issues.add(index)
+ 
+                # Create an entry in the results table
+                result = Result.objects.get_or_create(
+                    processed_sample_id=processed_sample_pks[sample_id],
+                    gating_strategy=self.gating_strategy,
+                    panel_id=panel_pk,
+                    data_processing=data_processing
+                )[0]
+                result.uploaded_file = self.upload_file
+                result.save()
+
 
                 # Store data for parameters
                 # Currently assuming all parameters are numeric
                 for parameter, parameter_pk in parameters_pk.items():
-                    if isinstance(row[parameter], numbers.Number) and not np.isnan(
-                        row[parameter]
-                    ):
-                        numeric_value = NumericValue(
-                            processed_sample_id=processed_sample.id,
+                    if isinstance(row[parameter], numbers.Number) \
+                        and not np.isnan(row[parameter]): 
+                        numeric_value, created = NumericValue.objects.get_or_create(
+                            result_id=result.id,
                             parameter_id=parameters_pk[parameter],
-                            value=row[parameter],
                         )
+                        numeric_value.value=row[parameter]
                         numeric_value.save()
                     # DEBUG
                     else:
@@ -325,6 +419,68 @@ class ClinicalSampleFile:
                         )
                         upload_issues.append(validation_entry)
                         rows_with_issues.add(index)
+                
+                # Store numeric pseudo parameters
+                for column, parameter in self.pseudo_parameters_numeric:
+                    if column in self.df.columns:
+                        value = row[column]
+                        if isinstance(value, numbers.Number) \
+                                and not np.isnan(value): 
+                            numeric_value, created = NumericValue.objects.get_or_create(
+                                result_id=result.id,
+                                parameter_id=pseudo_parameters_pk[parameter],
+                            )
+                            numeric_value.value=value
+                            numeric_value.save()
+                        else:
+                            validation_entry = ValidationEntry(
+                                subject_file=self.upload_file,
+                                key=f"row:{index} parameter:{parameter}",
+                                value=f"Value ({value}) not a "
+                                + "number - not uploaded to NumericValue"
+                                + " table",
+                                entry_type="WARN",
+                                validation_type="MODEL",
+                            )
+                            upload_issues.append(validation_entry)
+                            rows_with_issues.add(index)
+
+                # Store date pseudo parameters
+                for column, parameter in self.pseudo_parameters_date:
+                    if column in self.df.columns:
+                        value = row[column]
+                        if isinstance(value, pd.Timestamp) \
+                                and not pd.isnull(value): 
+                            date_value, created = DateValue.objects.get_or_create(
+                                result_id=result.id,
+                                parameter_id=pseudo_parameters_pk[parameter],
+                            )
+                            date_value.value=value
+                            date_value.save()
+                        else:
+                            validation_entry = ValidationEntry(
+                                subject_file=self.upload_file,
+                                key=f"row:{index} parameter:{parameter}",
+                                value=f"Value ({value}) not a "
+                                + "Date - not uploaded to DateValue"
+                                + " table",
+                                entry_type="WARN",
+                                validation_type="MODEL",
+                            )
+                            upload_issues.append(validation_entry)
+                            rows_with_issues.add(index)
+
+                # Store text pseudo parameters
+                for column, parameter in self.pseudo_parameters_text:
+                    if column in self.df.columns:
+                        value = str(row[column]).strip()
+                        if len(value) > 0 and value != "nan": 
+                            text_value, created = TextValue.objects.get_or_create(
+                                result_id=result.id,
+                                parameter_id=pseudo_parameters_pk[parameter],
+                            )
+                            text_value.value=value
+                            text_value.save()
 
             upload_report = {
                 "rows_processed": self.nrows,

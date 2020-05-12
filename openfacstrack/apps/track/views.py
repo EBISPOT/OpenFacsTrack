@@ -12,6 +12,7 @@ from openfacstrack.apps.track.models import (
     Parameter,
     UploadedFile,
     DataProcessing,
+    GatingStrategy,
 )
 import json
 
@@ -30,10 +31,13 @@ def home(request):
 def upload(request):
     if request.method == "POST":
         if request.FILES.get("file"):
+            gating_strategy = GatingStrategy.objects.get_or_create(strategy="manual")[0]
+            gating_strategy.save()
+            print(f"Gating strategy id = {gating_strategy.id}")
             file_name = request.FILES["file"].name
             file_contents = request.FILES.get("file")
             clinical_sample_file = ClinicalSampleFile(
-                file_name, file_contents, user=request.user
+                file_name, file_contents, user=request.user, gating_strategy=gating_strategy
             )
             validation_errors = clinical_sample_file.validate()
             if validation_errors:
@@ -99,11 +103,12 @@ def upload(request):
                 },
             )
         elif ConfirmFileForm(request.POST).data.get("file_id"):
+            gating_strategy = GatingStrategy.objects.get_or_create(strategy="manual")[0]
             uploaded_file = UploadedFile.objects.get(
                 pk=ConfirmFileForm(request.POST).data.get("file_id")
             )
             clinical_sample_file = ClinicalSampleFile(
-                user=request.user, uploaded_file=uploaded_file
+                user=request.user, uploaded_file=uploaded_file, gating_strategy=gating_strategy
             )
             clinical_sample_file.validate()
             clinical_sample_file.upload()

@@ -64,6 +64,8 @@ class Command(BaseCommand):
                     if created:
                         parameter.data_type = param_values['data_type']
                         parameter.description = param_values['description']
+                        parameter.internal_name = gating_hierarchy
+                        parameter.public_name = gating_hierarchy
                     parameter.save()
 
             # Store parameter details
