@@ -29,7 +29,7 @@ from openfacstrack.apps.track.models import (
 
 class ClinicalSampleFile:
     """
-    Uploads a file with results from clinical samples.
+    Validates and uploads a file with results from clinical samples.
     """
 
     def __init__(
@@ -44,8 +44,16 @@ class ClinicalSampleFile:
 
         Parameters
         ----------
-        filepath : string
-            path to file (csv) to read
+        file_name : string
+            name of file
+        file_contents : InMemoryUploadedFile
+            Django object with binary contents of uploaded file
+        uploaded_file : UploadedFile
+            custom object to store details of uploaded file
+        user : User
+            Django object representing user making upload
+        gating_strategy : GatingStrategy
+            Custom object representing the GatingStrategy for this upload
 
         Returns
         -------
@@ -59,9 +67,7 @@ class ClinicalSampleFile:
         self.content = file_contents
         self.file_name = file_name
         self.gating_strategy = gating_strategy
-        self.df = pd.read_csv(
-            self.content, dtype={"Comments": str,}, parse_dates=["Date"]
-        )
+        self.df = pd.read_csv(self.content, parse_dates=["Date"])
 
         # List of columns always expected
         # ToDo: Find out if any of these columns are 'required' - if so
@@ -89,16 +95,40 @@ class ClinicalSampleFile:
             self.sc_date,
         ]
 
-        # Compute names of parameters present. These are all the other
-        # columns in the file that are not in the static_columns list
-        parameter_columns = set(self.df.columns) - set(self.static_columns)
-        parameter_columns -= set(self.required_columns)
-        self.parameter_columns = list(parameter_columns)
-
         # Store the unique panels in the data
         # ToDo: I think there should be only one unique panel - check.
         self.panels = self.df["Panel"].unique().tolist()
         self.panel_name = self.panels[0].upper()
+
+        # Compute names of parameters present. These are all the other
+        # columns in the file that are not in the static_columns list
+        # and are not unregistered_derived_parameters
+        parameter_columns = set(self.df.columns) - set(self.static_columns)
+        parameter_columns -= set(self.required_columns)
+        self.parameter_columns = list(parameter_columns)
+
+        # Store unregistered parameters. Derived ones will be dynamically
+        # added to the Parameter table before upload
+        self.unregistered_derived_parameters = []
+        self.unregistered_parameters = []
+        for parameter_column in self.parameter_columns:
+            try:
+                parameter_object = Parameter.objects.get(
+                    gating_hierarchy=parameter_column
+                )
+            except Parameter.DoesNotExist:
+                if parameter_column.endswith("Count_back") or parameter_column.endswith(
+                    "freq"
+                ):
+                    self.unregistered_derived_parameters.append(parameter_column)
+                else:
+                    self.unregistered_parameters.append(parameter_column)
+        self.parameter_columns = [
+            column
+            for column in self.parameter_columns
+            if column not in self.unregistered_parameters
+            and column not in self.unregistered_derived_parameters
+        ]
 
         # Names for pseudo parameters (parameters computed from data)
         self.pseudo_parameters_numeric = [
@@ -134,9 +164,11 @@ class ClinicalSampleFile:
 
         Returns
         -------
-        validation_error : dict
-            keys are types of errors, values are descriptions. Empty dict
-            is returned if there are no errors
+        validation_error : list
+            list of validation errors. Each entry in the list is a 
+            ValidationEntry object - basically a dict 
+            whose keys are types of errors and values are descriptions. 
+            Empty list is returned if there are no errors
         """
 
         # Start validation writing errors into dictionary/or json string?
@@ -220,29 +252,23 @@ class ClinicalSampleFile:
             panels_in_data = []
             panels_in_data_pk = []
 
-        # For other columns these should be present in the
-        # parameter_metadata table. If they are not need to agree whether
-        # to add dynamically or flag as errors
-        unregistered_parameters = []
-
-        for parameter_column in self.parameter_columns:
-            try:
-                parameter_object = Parameter.objects.get(
-                    gating_hierarchy=parameter_column, panel__in=panels_in_data_pk
-                )
-            except Parameter.DoesNotExist:
-                unregistered_parameters.append(parameter_column)
-        self.parameter_columns = [
-            column
-            for column in self.parameter_columns
-            if column not in unregistered_parameters
-        ]
-        if len(unregistered_parameters) > 0:
+        if len(self.unregistered_parameters) > 0:
             error = ValidationEntry(
                 subject_file=self.upload_file,
                 key="unregistered_parameters",
-                value=unregistered_parameters,
+                value=self.unregistered_parameters,
                 entry_type="WARN",
+                validation_type="SYNTAX",
+            )
+            error.save()
+            validation_errors.append(error)
+
+        if len(self.unregistered_derived_parameters) > 0:
+            error = ValidationEntry(
+                subject_file=self.upload_file,
+                key="unregistered_derived_parameters - will be added during upload",
+                value=self.unregistered_derived_parameters,
+                entry_type="INFO",
                 validation_type="SYNTAX",
             )
             error.save()
@@ -267,22 +293,26 @@ class ClinicalSampleFile:
         need to confirm whether to throw error during validation if more
         than one panel). The upload is carried out in an atomic transaction
         and if there are any errors nothing is written to the database. If
-        the commit parameter is False nothing is written to the database.
+        the dry_run parameter is False nothing is written to the database.
         This is useful to get details of any records that have issues that
         would otherwise be missed when writing to the database.
         
         Workflow:
             1 - Details of the file being uploaded are written to the 
                 UploadedFile table - the ID of this file is saved so that
-                it can be stored with each record in the ProcessedSample
-                table
-            2 - covid patient IDs loaded into ClinicalSample table
+                it can be stored with each record in the Result table
+            2 - covid patient IDs loaded into Patient table
                 create if they do not exist
-            3 - For each row store sample metadata in ProcessedSample 
-                table along with ID of file being uploaded (see step 1)
-            4 - FCS file metadata into DataProcessing table
-            5 - Parameters and counts for each sample into NumericValue
-        
+            3 - For each row create unique record in Result table if it
+                    does not already exist. Uniqueness is by
+                    (panel, fcs_file_name, gating_strategy) then store:
+                (a) patient_id in Patient table
+                (b) sample_id (and any other sample metadata in 
+                    ProcessedSample table
+                (c) FCS file metadata into DataProcessing table
+                (d) Parameters and values for each sample into 
+                    NumericValue, DateValue and TextValue tables
+
         Parameters
         ----------
         dry_run : boolean
@@ -326,6 +356,24 @@ class ClinicalSampleFile:
             # Store first panel primary key for use later
             panel_pk = panels_pk[self.panels[0]]
 
+            # Append any unregistered derived parameters to parameter table
+            for parameter_to_add in self.unregistered_derived_parameters:
+                parameter, created = Parameter.objects.get_or_create(
+                    gating_hierarchy=parameter_to_add, panel_id=panel_pk
+                )
+                parameter.internal_name = parameter_to_add
+                parameter.public_name = parameter_to_add
+                parameter.is_reference_parameter = False
+                if parameter_to_add.endswith("freq"):
+                    parameter.unit = "Derived frequency"
+                else:
+                    parameter.unit = "Derived count"
+                parameter.data_type = "PanelNumeric"
+                parameter.description = parameter.unit
+                parameter.save()
+
+                self.parameter_columns.append(parameter_to_add)
+
             # Get parameter_ids for NumericParameters
             parameters_pk = {}
             for parameter in self.parameter_columns:
@@ -354,7 +402,7 @@ class ClinicalSampleFile:
             for index, row in self.df.iterrows():
 
                 # Only proceed if sample_id is valid
-                sample_id = row[self.sc_clinical_sample]
+                sample_id = str(row[self.sc_clinical_sample])
                 if sample_id[0].upper() != "P" or len(sample_id) < 4:
                     validation_entry = ValidationEntry(
                         subject_file=self.upload_file,
@@ -380,12 +428,13 @@ class ClinicalSampleFile:
                         subject_file=self.upload_file,
                         key=f"row:{index} field:{self.sc_filename}",
                         value=f"Value {fcs_file_name} does not contain the"
-                        + " sample ID ({sample_id}) - row not loaded ",
+                        + f" sample ID ({sample_id}) - row not loaded",
                         entry_type="WARN",
                         validation_type="MODEL",
                     )
                     upload_issues.append(validation_entry)
                     rows_with_issues.add(index)
+                    continue
 
                 # Create an entry in the results table
                 result = Result.objects.get_or_create(

@@ -231,7 +231,7 @@ class Parameter(TimeStampedModel):
     excel_column_name = models.CharField(max_length=255)
     description = models.TextField()
     is_reference_parameter = models.BooleanField(blank=True, null=True)
-    gating_hierarchy = models.TextField()
+    gating_hierarchy = models.TextField(unique=True)
     unit = models.CharField(max_length=255)
     ancestral_population = models.CharField(max_length=255)
     population_for_counts = models.CharField(max_length=255)

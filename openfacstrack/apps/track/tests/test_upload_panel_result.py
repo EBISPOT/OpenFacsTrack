@@ -12,6 +12,7 @@ from openfacstrack.apps.track.models import (
     ProcessedSample,
     Result,
     DataProcessing,
+    Parameter,
     NumericValue,
     TextValue,
     DateValue,
@@ -166,6 +167,7 @@ class UploadPanelResultTest(TestCase):
             gating_strategy=self.gating_strategy,
         )
 
+        validation_report = clinical_sample_file.validate()
         upload_report = clinical_sample_file.upload()
         self.assertTrue(len(upload_report), 0)
 
@@ -211,15 +213,115 @@ class UploadPanelResultTest(TestCase):
         # ToDo: Test actual values
         self.assertEqual(TextValue.objects.count(), 1)
 
-    #        validation_report_contains="Key:static_columns_missing, Value:['X1']"
-    # We only expect one error here - missing X1 column
-    # validation_report = clinical_sample_file.validate()
-    # self.assertEqual(length_of_validation_report,len(validation_report))
-    #
-    ## Check missing X1 column is identified
-    # validation_entry = validation_report[0]
-    # self.assertEquals(validation_entry.key,"static_columns_missing")
-    # self.assertEquals(validation_entry.value,['X1'])
+    def test_rows_with_invalid_clinical_sample_id_not_loaded(self):
+        """Rows with invalid clinical sample IDs should not be loaded"""
+        fname = "test_panel_data_clinical_sample_nan.csv"
+        uploaded_file = self._get_uploaded_file(fname)
+        clinical_sample_file = ClinicalSampleFile(
+            file_name=fname,
+            file_contents=uploaded_file,
+            user=self.user,
+            gating_strategy=self.gating_strategy,
+        )
+
+        upload_report = clinical_sample_file.upload()
+        self.assertTrue(upload_report["rows_with_issues"], 2)
+        self.assertTrue(upload_report["rows_processed"], 3)
+
+        upload_issues = upload_report["validation"]
+        self.assertTrue(len(upload_issues), 2)
+        self.assertEquals(upload_issues[0].key, "row:0 field:Clinical_sample")
+        self.assertEquals(upload_issues[1].key, "row:1 field:Clinical_sample")
+
+    def test_rows_with_invalid_fcs_file_name_not_loaded(self):
+        """Rows with invalid clinical sample IDs should not be loaded"""
+        fname = "test_panel_data_fcs_file_name_nan.csv"
+        uploaded_file = self._get_uploaded_file(fname)
+        clinical_sample_file = ClinicalSampleFile(
+            file_name=fname,
+            file_contents=uploaded_file,
+            user=self.user,
+            gating_strategy=self.gating_strategy,
+        )
+
+        upload_report = clinical_sample_file.upload()
+        self.assertTrue(upload_report["rows_with_issues"], 2)
+        self.assertTrue(upload_report["rows_processed"], 3)
+
+        upload_issues = upload_report["validation"]
+        self.assertTrue(len(upload_issues), 2)
+        self.assertEquals(upload_issues[0].key, "row:0 field:filename")
+        self.assertEquals(
+            upload_issues[0].value,
+            "Value nan does not contain the sample ID (p005n01) - row not loaded",
+        )
+        self.assertEquals(upload_issues[1].key, "row:2 field:filename")
+        self.assertEquals(
+            upload_issues[1].value,
+            "Value nan does not contain the sample ID (p033n01) - row not loaded",
+        )
+
+    def test_info_on_derived_parameters(self):
+        """If derived parameters present INFO should be given on validation"""
+        fname = "test_panel_data_with_derived_parameters.csv"
+        uploaded_file = self._get_uploaded_file(fname)
+        clinical_sample_file = ClinicalSampleFile(
+            file_name=fname,
+            file_contents=uploaded_file,
+            user=self.user,
+            gating_strategy=self.gating_strategy,
+        )
+        validation_report = clinical_sample_file.validate()
+        length_of_validation_report = len(validation_report)
+        validation_entry = validation_report[0]
+        self.assertEquals(
+            validation_entry.key,
+            "unregistered_derived_parameters - will be added during upload",
+        )
+        self.assertEquals(validation_entry.entry_type, "INFO")
+        unregistered_derived_parameters = [
+            "CD45p_03/Live_03 |freq",
+            "Time_03/Cells_03/Singlets1_03/Singlets2_03/Live_03/CD45p_03/T_03 | Count_back",
+            "Time_03/Cells_03/Singlets1_03/Singlets2_03/Live_03/CD45p_03/T_03/gd_03/gd_Vdx_03/Vdx_PD1p_03 | Count_back",
+            "Vdx_PD1p_03/gd_Vdx_03 |freq",
+        ]
+        unregistered_derived_parameters.sort()
+        validation_entry.value.sort()
+        self.assertEquals(validation_entry.value, unregistered_derived_parameters)
+
+    def test_upload_results_with_derived_parameters(self):
+        """If derived parameters present they should created dynamically and values uploaded"""
+
+        fname = "test_panel_data_with_derived_parameters.csv"
+        uploaded_file = self._get_uploaded_file(fname)
+        clinical_sample_file = ClinicalSampleFile(
+            file_name=fname,
+            file_contents=uploaded_file,
+            user=self.user,
+            gating_strategy=self.gating_strategy,
+        )
+
+        # Ensure unregistered derived parameters do not exist
+        unregistered_derived_parameters = [
+            "CD45p_03/Live_03 |freq",
+            "Time_03/Cells_03/Singlets1_03/Singlets2_03/Live_03/CD45p_03/T_03 | Count_back",
+            "Time_03/Cells_03/Singlets1_03/Singlets2_03/Live_03/CD45p_03/T_03/gd_03/gd_Vdx_03/Vdx_PD1p_03 | Count_back",
+            "Vdx_PD1p_03/gd_Vdx_03 |freq",
+        ]
+        n_derived_parameters = Parameter.objects.filter(
+            gating_hierarchy__in=unregistered_derived_parameters
+        ).count()
+        self.assertEqual(n_derived_parameters, 0)
+
+        upload_report = clinical_sample_file.upload()
+
+        # derived parameters should now be in Parameter table
+        n_derived_parameters = Parameter.objects.filter(
+            gating_hierarchy__in=unregistered_derived_parameters
+        ).count()
+        self.assertEqual(n_derived_parameters, 4)
+
+        # ToDo check values
 
     def _get_uploaded_file(self, fname):
         """Return django object representing an uploaded file"""

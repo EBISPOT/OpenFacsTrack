@@ -1,0 +1,4 @@
+Panel,Clinical_sample,batch,filename,Operator name,Comments,Date,Time_03/Cells_03/Singlets1_03/Singlets2_03/Live_03 | Count,Time_03/Cells_03/Singlets1_03/Singlets2_03/Live_03/CD45p_03/T_03/CD3p_gdn_03/CD4_03/CD4_CD103p_03 | Median (CD103),CD45p_03/Live_03 |freq,Vdx_PD1p_03/gd_Vdx_03 |freq,Time_03/Cells_03/Singlets1_03/Singlets2_03/Live_03/CD45p_03/T_03 | Count_back,Time_03/Cells_03/Singlets1_03/Singlets2_03/Live_03/CD45p_03/T_03/gd_03/gd_Vdx_03/Vdx_PD1p_03 | Count_back
+p3,p001n01,1,20200325p3_p001n01_A05_001.fcs,1,Time gate unchanged but choppy acquisition.,20200325,48454,6500,0.967040904775664,0.976923076923077,216840,2302
+p3,p001n02,1,20200327p3_p001n02_A05_001.fcs,1,Time gate unchanged but choppy acquisition.,20200327,232680,7340,0.884708612686952,0.841463414634146,300960,187
+p3,p002n02,1,20200327p3_p002n02_B05_002.fcs,1,Test comment,20200327,36396,4004,0.263930102209034,0.153846153846154,79320,161
