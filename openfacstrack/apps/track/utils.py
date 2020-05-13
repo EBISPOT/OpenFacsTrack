@@ -131,19 +131,32 @@ class ClinicalSampleFile:
         ]
 
         # Names for pseudo parameters (parameters computed from data)
-        self.pseudo_parameters_numeric = [
-            (self.sc_batch, f"{self.panel_name}_batch"),
-            (self.sc_operator1, f"{self.panel_name}_operator_1"),
-        ]
-        self.pseudo_parameters_date = [
-            (self.sc_date, f"{self.panel_name}_date_processed"),
-        ]
-        self.pseudo_parameters_text = [
-            (self.sc_comments, f"{self.panel_name}_comments"),
-        ]
+        self.pseudo_parameters_numeric = []
+        if self.sc_batch in self.df.columns:
+            self.pseudo_parameters_numeric.append(
+                (self.sc_batch, f"{self.panel_name}_batch")
+            )
+        if self.sc_operator1 in self.df.columns:
+            self.pseudo_parameters_numeric.append(
+                (self.sc_operator1, f"{self.panel_name}_operator_1")
+            )
+
+        self.pseudo_parameters_date = []
+        if self.sc_date in self.df.columns:
+            self.pseudo_parameters_date.append(
+                (self.sc_date, f"{self.panel_name}_date_processed")
+            )
+
+        self.pseudo_parameters_text = []
+        if self.sc_comments in self.df.columns:
+            self.pseudo_parameters_text.append(
+                (self.sc_comments, f"{self.panel_name}_comments")
+            )
 
         # Number of rows to process
         self.nrows = len(self.df)
+
+        # Default uploaded file
         if not uploaded_file:
             self.upload_file = UploadedFile(
                 name=self.file_name,
@@ -211,6 +224,9 @@ class ClinicalSampleFile:
             self.upload_file.save()
 
         # Check that all the info is for the same panel
+        # It is dangerous to proceed otherwise as we will
+        # mainly because of the parameters we dynamically
+        # compose from the panel name.
         if "Panel" in self.df.columns:
             panels_in_data = self.df["Panel"].unique().tolist()
             n_unique_panels_in_data = len(panels_in_data)
@@ -220,7 +236,7 @@ class ClinicalSampleFile:
                     key="unique_panel_error",
                     value=f"Expected 1 unique value for panels in each record"
                     + f". Got {n_unique_panels_in_data}: {panels_in_data}",
-                    entry_type="ERROR",
+                    entry_type="FATAL",
                     validation_type="SYNTAX",
                 )
                 error.save()
@@ -335,6 +351,7 @@ class ClinicalSampleFile:
         # any errors encountered
         upload_issues = []
         rows_with_issues = set()
+
         with transaction.atomic():
             # Ensure all sample numbers are in processed_sample table
             # and respective records for patients exist
@@ -403,7 +420,7 @@ class ClinicalSampleFile:
 
                 # Only proceed if sample_id is valid
                 sample_id = str(row[self.sc_clinical_sample])
-                if sample_id[0].upper() != "P" or len(sample_id) < 4:
+                if not sample_id.upper().startswith("P") or len(sample_id) < 4:
                     validation_entry = ValidationEntry(
                         subject_file=self.upload_file,
                         key=f"row:{index} field:Clinical_sample",
@@ -447,7 +464,6 @@ class ClinicalSampleFile:
                 result.save()
 
                 # Store data for parameters
-                # Currently assuming all parameters are numeric
                 for parameter, parameter_pk in parameters_pk.items():
                     if isinstance(row[parameter], numbers.Number) and not np.isnan(
                         row[parameter]
@@ -457,7 +473,6 @@ class ClinicalSampleFile:
                         )
                         numeric_value.value = row[parameter]
                         numeric_value.save()
-                    # DEBUG
                     else:
                         validation_entry = ValidationEntry(
                             subject_file=self.upload_file,
@@ -473,63 +488,60 @@ class ClinicalSampleFile:
 
                 # Store numeric pseudo parameters
                 for column, parameter in self.pseudo_parameters_numeric:
-                    if column in self.df.columns:
-                        value = row[column]
-                        if isinstance(value, numbers.Number) and not np.isnan(value):
-                            numeric_value, created = NumericValue.objects.get_or_create(
-                                result_id=result.id,
-                                parameter_id=pseudo_parameters_pk[parameter],
-                            )
-                            numeric_value.value = value
-                            numeric_value.save()
-                        else:
-                            validation_entry = ValidationEntry(
-                                subject_file=self.upload_file,
-                                key=f"row:{index} parameter:{parameter}",
-                                value=f"Value ({value}) not a "
-                                + "number - not uploaded to NumericValue"
-                                + " table",
-                                entry_type="WARN",
-                                validation_type="MODEL",
-                            )
-                            upload_issues.append(validation_entry)
-                            rows_with_issues.add(index)
+                    value = row[column]
+                    if isinstance(value, numbers.Number) and not np.isnan(value):
+                        numeric_value, created = NumericValue.objects.get_or_create(
+                            result_id=result.id,
+                            parameter_id=pseudo_parameters_pk[parameter],
+                        )
+                        numeric_value.value = value
+                        numeric_value.save()
+                    else:
+                        validation_entry = ValidationEntry(
+                            subject_file=self.upload_file,
+                            key=f"row:{index} parameter:{parameter}",
+                            value=f"Value ({value}) not a "
+                            + "number - not uploaded to NumericValue"
+                            + " table",
+                            entry_type="WARN",
+                            validation_type="MODEL",
+                        )
+                        upload_issues.append(validation_entry)
+                        rows_with_issues.add(index)
 
-                # Store date pseudo parameters
+                # Stdate pseudo parameters
                 for column, parameter in self.pseudo_parameters_date:
-                    if column in self.df.columns:
-                        value = row[column]
-                        if isinstance(value, pd.Timestamp) and not pd.isnull(value):
-                            date_value, created = DateValue.objects.get_or_create(
-                                result_id=result.id,
-                                parameter_id=pseudo_parameters_pk[parameter],
-                            )
-                            date_value.value = value
-                            date_value.save()
-                        else:
-                            validation_entry = ValidationEntry(
-                                subject_file=self.upload_file,
-                                key=f"row:{index} parameter:{parameter}",
-                                value=f"Value ({value}) not a "
-                                + "Date - not uploaded to DateValue"
-                                + " table",
-                                entry_type="WARN",
-                                validation_type="MODEL",
-                            )
-                            upload_issues.append(validation_entry)
-                            rows_with_issues.add(index)
+                    value = row[column]
+                    if isinstance(value, pd.Timestamp) and not pd.isnull(value):
+                        date_value, created = DateValue.objects.get_or_create(
+                            result_id=result.id,
+                            parameter_id=pseudo_parameters_pk[parameter],
+                        )
+                        date_value.value = value
+                        date_value.save()
+                    else:
+                        validation_entry = ValidationEntry(
+                            subject_file=self.upload_file,
+                            key=f"row:{index} parameter:{parameter}",
+                            value=f"Value ({value}) not a "
+                            + "Date - not uploaded to DateValue"
+                            + " table",
+                            entry_type="WARN",
+                            validation_type="MODEL",
+                        )
+                        upload_issues.append(validation_entry)
+                        rows_with_issues.add(index)
 
                 # Store text pseudo parameters
                 for column, parameter in self.pseudo_parameters_text:
-                    if column in self.df.columns:
-                        value = str(row[column]).strip()
-                        if len(value) > 0 and value != "nan":
-                            text_value, created = TextValue.objects.get_or_create(
-                                result_id=result.id,
-                                parameter_id=pseudo_parameters_pk[parameter],
-                            )
-                            text_value.value = value
-                            text_value.save()
+                    value = str(row[column]).strip()
+                    if len(value) > 0 and value != "nan":
+                        text_value, created = TextValue.objects.get_or_create(
+                            result_id=result.id,
+                            parameter_id=pseudo_parameters_pk[parameter],
+                        )
+                        text_value.value = value
+                        text_value.save()
 
             upload_report = {
                 "rows_processed": self.nrows,
@@ -544,4 +556,107 @@ class ClinicalSampleFile:
         else:
             self.upload_file.valid_model = True
             self.upload_file.save()
+        return upload_report
+
+
+class PatientFile:
+    """Uploads a file with anonymised patient details."""
+
+    def __init__(
+        self,
+        file_name=None,
+        file_contents=None,
+        uploaded_file: UploadedFile = None,
+        user: User = None,
+    ):
+        if uploaded_file:
+            self.upload_file = uploaded_file
+            file_name = uploaded_file.name
+            file_contents = uploaded_file.content
+        self.content = file_contents
+        self.file_name = file_name
+        self.df = pd.read_csv(self.content)
+        self.nrows = len(self.df)
+
+        # Default uploaded file
+        if not uploaded_file:
+            self.upload_file = UploadedFile(
+                name=self.file_name,
+                user=user,
+                description="Panel results",
+                row_number=self.nrows,
+                content=self.content,
+                notes="",
+            )
+            self.upload_file.save()
+
+        self.patient_ids = self.df["patient"].unique().tolist()
+
+    def upload(self, dry_run=False):
+        """Upload data to relevant tables"""
+
+        upload_issues = []
+        rows_with_issues = []
+
+        with transaction.atomic():
+
+            # Create metadata dict entries if necessary
+            columns = self.df.columns.tolist()
+            columns.remove("patient")
+            metadata_dicts = {}
+            for column in columns:
+                column_lc = column.lower()
+                metadata_dict, created = PatientMetadataDict.objects.get_or_create(
+                    name=column_lc
+                )
+                if created:
+                    metadata_dict.description = f"{column}"
+                    metadata_dict.notes = "Dynamically added"
+                    metadata_dict.save()
+                metadata_dicts[column] = metadata_dict
+
+            # Enter details for all patients
+            for index, row in self.df.iterrows():
+                patient_id = str(row["patient"])
+                # Create patients if necessary
+                if not patient_id.upper().startswith("P"):
+                    validation_entry = ValidationEntry(
+                        subject_file=self.upload_file,
+                        key=f"row:{index} field:patient",
+                        value=f"Value ({patient_id}) not valid. "
+                        + "Expected pxxx. Entries for this id not loaded.",
+                        entry_type="WARN",
+                        validation_type="MODEL",
+                    )
+                    upload_issues.append(validation_entry)
+                    rows_with_issues.append(index)
+                    continue
+                patient = Patient.objects.get_or_create(patient_id=patient_id)[0]
+
+                # Store metadata associated with patient
+                for column, metadata_dict in metadata_dicts.items():
+                    value = row[column]
+                    patient_metadata = PatientMetadata.objects.get_or_create(
+                        patient=patient, metadata_key=metadata_dict
+                    )[0]
+                    patient_metadata.metadata_value = value
+                    patient_metadata.save()
+
+            if upload_issues:
+                for issue in upload_issues:
+                    issue.save()
+            else:
+                self.upload_file.valid_model = True
+
+            if dry_run:
+                transaction.set_rollback(True)
+            else:
+                # Put this here as I think uploaded file is also saved to disk. Can this be rolled back?
+                self.upload_file.save()
+
+        upload_report = {
+            "rows_processed": self.nrows,
+            "rows_with_issues": len(rows_with_issues),
+            "upload_issues": upload_issues,
+        }
         return upload_report
