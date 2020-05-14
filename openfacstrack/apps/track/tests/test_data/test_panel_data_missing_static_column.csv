@@ -1,0 +1,4 @@
+batch,filename,Cells_5/Time_5/Live_5/Live_cells_5/CD3p_5/No_Doublets_5/ab_5/Foxp3n_5/CD8p_5/CD8_CD45RAn_CCR7n_5 | Count,Cells_5/Time_5/Live_5/Live_cells_5/CD3p_5/No_Doublets_5/ab_5/Foxp3n_5/CD8p_5/CD8_CD45RAn_CCR7p_5/S_G2_M_5 | Count,Operator name,Date,Panel,Clinical_sample
+1,20200327p5_p005n01_020.fcs,3128,0,3,20200327,p5,p005n01
+6,20200407p5_p033n01_003.fcs,7244,5,,,p5,p033n01
+9,20200410p5_p033n01_002.fcs,3274,25,NA,20200410,p5,p033n01
