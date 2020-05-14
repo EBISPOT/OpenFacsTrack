@@ -24,3 +24,13 @@ main {
 .main-nav {
     background-color: #91CAD1;
 }
+
+.nav-tabs > li {
+    float:none;
+    display:inline-block;
+    zoom:1;
+}
+
+.nav-tabs {
+    text-align:center;
+}

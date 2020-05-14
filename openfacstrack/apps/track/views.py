@@ -16,7 +16,7 @@ from openfacstrack.apps.track.models import (
 )
 import json
 
-from openfacstrack.apps.track.utils import ClinicalSampleFile
+from openfacstrack.apps.track.utils import ClinicalSampleFile, PatientFile
 
 
 def index(request):
@@ -30,19 +30,27 @@ def home(request):
 @login_required(login_url="/track/login/")
 def upload(request):
     if request.method == "POST":
-        if request.FILES.get("file"):
+        file_type = None
+        if request.FILES.get("observationsFile"):
+            file_type = "observationsFile"
+        elif request.FILES.get("patientsFile"):
+            file_type = "patientsFile"
+        if file_type:
             gating_strategy = GatingStrategy.objects.get_or_create(strategy="manual")[0]
             gating_strategy.save()
             print(f"Gating strategy id = {gating_strategy.id}")
-            file_name = request.FILES["file"].name
-            file_contents = request.FILES.get("file")
-            clinical_sample_file = ClinicalSampleFile(
-                file_name,
-                file_contents,
-                user=request.user,
-                gating_strategy=gating_strategy,
-            )
-            validation_errors = clinical_sample_file.validate()
+            file_name = request.FILES[file_type].name
+            file_contents = request.FILES.get(file_type)
+            if file_type == "observationsFile":
+                uploaded_file = ClinicalSampleFile(
+                    file_name,
+                    file_contents,
+                    user=request.user,
+                    gating_strategy=gating_strategy,
+                )
+            else:
+                uploaded_file = PatientFile(file_name, file_contents, user=request.user)
+            validation_errors = uploaded_file.validate()
             if validation_errors:
                 validation_report = {
                     "info": [
@@ -64,13 +72,13 @@ def upload(request):
             else:
                 validation_report = {}
             upload_report = {}
-            if not clinical_sample_file.upload_file.valid_syntax:
+            if not uploaded_file.upload_file.valid_syntax:
                 print("Validation errors, aborting upload:")
                 print(validation_errors)
             else:
                 print("trying upload")
                 try:
-                    upload_report = clinical_sample_file.upload(dry_run=True)
+                    upload_report = uploaded_file.upload(dry_run=True)
                     upload_errors = {
                         "info": [
                             error
@@ -93,7 +101,7 @@ def upload(request):
                     print("upload failed")
                     upload_report["status"] = "failed"
             confirm_file_form = ConfirmFileForm(
-                initial={"file_id": clinical_sample_file.upload_file.id}
+                initial={"file_id": uploaded_file.upload_file.id}
             )
             return render(
                 request,
@@ -110,13 +118,18 @@ def upload(request):
             uploaded_file = UploadedFile.objects.get(
                 pk=ConfirmFileForm(request.POST).data.get("file_id")
             )
-            clinical_sample_file = ClinicalSampleFile(
-                user=request.user,
-                uploaded_file=uploaded_file,
-                gating_strategy=gating_strategy,
-            )
-            clinical_sample_file.validate()
-            clinical_sample_file.upload()
+            if uploaded_file.content_type == "PANEL_RESULTS":
+                uploaded_file = ClinicalSampleFile(
+                    user=request.user,
+                    uploaded_file=uploaded_file,
+                    gating_strategy=gating_strategy,
+                )
+            else:
+                uploaded_file = PatientFile(
+                    user=request.user, uploaded_file=uploaded_file
+                )
+            uploaded_file.validate()
+            uploaded_file.upload()
             return render(request, "track/upload.html", {"upload_status": "success"})
     return render(request, "track/upload.html")
 

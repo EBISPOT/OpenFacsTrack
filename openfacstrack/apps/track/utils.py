@@ -165,6 +165,7 @@ class ClinicalSampleFile:
                 row_number=self.nrows,
                 content=self.content,
                 notes="",
+                content_type="PANEL_RESULTS",
             )
             self.upload_file.save()
 
@@ -438,7 +439,7 @@ class ClinicalSampleFile:
                 fcs_file_name = row[self.sc_filename]
                 if type(fcs_file_name) == str and fcs_file_name.find(sample_id) >= 0:
                     data_processing, created = DataProcessing.objects.get_or_create(
-                        fcs_file_name=fcs_file_name, panel_id=panels_pk[row["Panel"]],
+                        fcs_file_name=fcs_file_name, panel_id=panels_pk[row["Panel"]]
                     )
                 else:
                     validation_entry = ValidationEntry(
@@ -469,7 +470,7 @@ class ClinicalSampleFile:
                         row[parameter]
                     ):
                         numeric_value, created = NumericValue.objects.get_or_create(
-                            result_id=result.id, parameter_id=parameters_pk[parameter],
+                            result_id=result.id, parameter_id=parameters_pk[parameter]
                         )
                         numeric_value.value = row[parameter]
                         numeric_value.save()
@@ -583,14 +584,18 @@ class PatientFile:
             self.upload_file = UploadedFile(
                 name=self.file_name,
                 user=user,
-                description="Panel results",
+                description="Patient data",
                 row_number=self.nrows,
                 content=self.content,
                 notes="",
+                content_type="PATIENT_DATA",
             )
             self.upload_file.save()
 
         self.patient_ids = self.df["patient"].unique().tolist()
+
+    def validate(self):
+        return []
 
     def upload(self, dry_run=False):
         """Upload data to relevant tables"""
