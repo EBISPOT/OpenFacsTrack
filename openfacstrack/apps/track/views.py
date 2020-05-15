@@ -1,18 +1,23 @@
 from django.contrib.auth.decorators import login_required
+from django.contrib.postgres.aggregates import ArrayAgg
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import F
 from django.shortcuts import render
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 
 from openfacstrack.apps.track.forms import ConfirmFileForm
 from openfacstrack.apps.track.models import (
     Panel,
     ProcessedSample,
     NumericValue,
+    TextValue,
+    DateValue,
     Parameter,
     UploadedFile,
-    DataProcessing,
+    Result,
     GatingStrategy,
+    Patient,
+    PatientMetadata,
 )
 import json
 
@@ -144,13 +149,15 @@ def panels_view(request):
 def samples_view(request):
     samples = (
         ProcessedSample.objects.all()
-        .annotate(sample_id=F("clinical_sample__covid_patient_id"))
+        .annotate(patient_covid_id=F("patient__patient_id"))
+        .distinct("patient_covid_id")
+        .order_by("patient_covid_id")
         .values()
     )
     for sample in samples:
-        panels_by_sample = DataProcessing.objects.filter(
-            processed_sample=sample["id"]
-        ).values("panel__name", "created")
+        panels_by_sample = Result.objects.filter(processed_sample=sample["id"]).values(
+            "panel__name", "created"
+        )
         for panel in panels_by_sample:
             sample[panel["panel__name"]] = panel["created"]
     panel_names = [
@@ -168,24 +175,80 @@ def samples_view(request):
 
 @login_required(login_url="/track/login/")
 def observations_view(request):
-    parameters = Parameter.objects.all().order_by("panel__name")
-    if request.GET.get("parameter") is None:
+    patients = Patient.objects.all().order_by("patient_id")
+    if request.GET.get("patient") is None:
         return render(
             request,
             "track/observations.html",
-            {"parameters": parameters, "selected": None, "numeric": []},
+            {"patients": patients, "selected": None, "numeric": []},
         )
     else:
-        numeric = NumericValue.objects.filter(parameter=request.GET.get("parameter"))
+        patient_id = request.GET.get("patient")
+        numeric = (
+            NumericValue.objects.all()
+            .annotate(patient_id=F("result__processed_sample__patient__id"))
+            .annotate(panel_name=F("result__panel__name"))
+            .filter(patient_id=patient_id)
+        )
         return render(
             request,
             "track/observations.html",
             {
-                "parameters": parameters,
-                "selected": Parameter.objects.get(id=request.GET.get("parameter")),
+                "patients": patients,
+                "selected": Patient.objects.get(id=patient_id),
                 "numeric": numeric,
             },
         )
+
+
+def export_view(request):
+    patients = list(Patient.objects.all().values("id", "patient_id"))
+    for patient in patients:
+        patient_id = patient["id"]
+        patient_metadata = (
+            PatientMetadata.objects.filter(patient=patient_id)
+            .annotate(column_name=F("metadata_key__name"))
+            .all()
+            .values()
+        )
+        for metadata_item in list(patient_metadata):
+            patient[metadata_item["column_name"]] = metadata_item["metadata_value"]
+
+        patient["samples"] = list(
+            ProcessedSample.objects.filter(patient=patient_id).values()
+        )
+
+        for sample in patient["samples"]:
+            sample_id = sample["id"]
+            sample_results = (
+                Result.objects.filter(processed_sample=sample_id)
+                .annotate(panel_name=F("panel__name"))
+                .annotate(gating_strategy_name=F("gating_strategy__strategy"))
+                .values()
+            )
+            sample["panels"] = list(sample_results)
+            for result in sample["panels"]:
+                result_id = result["id"]
+                result["observations"] = list(
+                    NumericValue.objects.filter(result=result_id)
+                    .annotate(parameter_name=F("parameter__public_name"))
+                    .values()
+                )
+                result["observations"] += list(
+                    TextValue.objects.filter(result=result_id)
+                    .annotate(parameter_name=F("parameter__public_name"))
+                    .values()
+                )
+                result["observations"] += list(
+                    DateValue.objects.filter(result=result_id)
+                    .annotate(parameter_name=F("parameter__public_name"))
+                    .values()
+                )
+
+    return HttpResponse(
+        json.dumps(patients, indent=1, cls=DjangoJSONEncoder),
+        content_type="application/json",
+    )
 
 
 def login(request):
