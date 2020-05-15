@@ -1,77 +1,124 @@
 {% extends 'track/base.html' %}
 {% block content %}
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <form action="/track/upload/" method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-                <div class="row">
-                    <div class="custom-file mb-2">
-                        <input type="file" multiple class="custom-file-input" id="customFile" name="file">
-                        <label class="custom-file-label" for="customFile">Choose file</label>
+    <div class="row">
+        <div class="col-12">
+            {% if not uploaded %}
+                <ul class="nav nav-tabs" id="uploadTab" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="observations-tab" data-toggle="tab" href="#observations"
+                           role="tab"
+                           aria-controls="observations"
+                           aria-selected="true">Observations data</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="patients-tab" data-toggle="tab" href="#patients" role="tab"
+                           aria-controls="patients" aria-selected="false">Patients data</a>
+                    </li>
+                </ul>
+                <div class="tab-content" id="uploadTabContent">
+                    <div class="tab-pane fade show active" id="observations" role="tabpanel"
+                         aria-labelledby="observations-tab">
+                        <div class="row justify-content-center mt-2">
+                            <div class="col-8">
+                                <form action="/track/upload/" method="post" enctype="multipart/form-data">
+                                    {% csrf_token %}
+                                    <div class="row">
+                                        <div class="custom-file mb-2">
+                                            <input type="file" multiple class="custom-file-input" id="customFile"
+                                                   name="observationsFile">
+                                            <label class="custom-file-label" for="customFile">Choose file</label>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-1 float-right">
+                                        <button class="btn btn-secondary" type="submit"><i class="fa fa-upload"></i>Upload
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="patients" role="tabpanel" aria-labelledby="patients-tab">
+                        <div class="row justify-content-center mt-2">
+                            <div class="col-8">
+                                <form action="/track/upload/" method="post" enctype="multipart/form-data">
+                                    {% csrf_token %}
+                                    <div class="row">
+                                        <div class="custom-file mb-2">
+                                            <input type="file" multiple class="custom-file-input" id="customFile"
+                                                   name="patientsFile">
+                                            <label class="custom-file-label" for="customFile">Choose file</label>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-1 float-right">
+                                        <button class="btn btn-secondary" type="submit"><i class="fa fa-upload"></i>Upload
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="row mt-1 float-right">
-                    <button class="btn btn-secondary" type="submit"><i class="fa fa-upload"></i>Upload</button>
+            {% endif %}
+
+            {% if uploaded %}
+                <h2>File validation report</h2>
+                <div class="justify-content-center my-2">
+                    <h3>Syntax report</h3>
+                    {% if not syntax_report %}
+                        <div class="alert alert-success" role="alert">
+                            Nicely done! Your file is well constructed.
+                        </div>
+                    {% endif %}
+                    {% if syntax_report %}
+                        <div>
+                            <p class="text-warning">
+                                There were some issues parsing your file:
+                            </p>
+                        </div>
+                        {% include "track/includes/validation-report.html" with report=syntax_report %}
+                    {% endif %}
                 </div>
-            </form>
+                <div class="justify-content-center my-2">
+                    <h3>Database load report</h3>
+                    <div class="alert alert-info" role="alert">
+                        Found {{ model_report.rows_processed }} rows.
+                    </div>
+                    {% if not model_report.validation %}
+                        <div class="alert alert-success" role="alert">
+                            Nicely done! The content of your file looks good.
+                        </div>
+                    {% endif %}
+                    {% if model_report.validation %}
+                        <div>
+                            <p class="text-warning">
+                                There were some issues trying to load your file to the database:
+                            </p>
+                        </div>
+                        {% include "track/includes/validation-report.html" with report=model_report.validation %}
+                    {% endif %}
+                </div>
+                <div class="row justify-content-center">
+                    {% if form %}
+                        <form action="/track/upload/" method="post">
+                            {% csrf_token %}
+                            <div class="d-none">
+                                {{ form }}
+                            </div>
+                            <button class="btn btn-secondary" type="submit"><i class="fa fa-upload"></i>Confirm</button>
+                        </form>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            {% if upload_status == "success" %}
+                <div class="row justify-content-center my-3">
+                    <div class="alert alert-success">
+                        File uploaded successfully! Please go to <a href="/track/observations/">Observations view</a> to
+                        see the
+                        results.
+                    </div>
+                </div>
+            {% endif %}
         </div>
     </div>
-    {% if uploaded %}
-        <h2>File validation report</h2>
-        <div class="justify-content-center my-2">
-            <h3>Syntax report</h3>
-            {% if not syntax_report %}
-                <div class="alert alert-success" role="alert">
-                    Nicely done! Your file is well constructed.
-                </div>
-            {% endif %}
-            {% if syntax_report %}
-                <div>
-                    <p class="text-warning">
-                        There were some issues parsing your file:
-                    </p>
-                </div>
-                {% include "track/includes/validation-report.html" with report=syntax_report %}
-            {% endif %}
-        </div>
-        <div class="justify-content-center my-2">
-            <h3>Database load report</h3>
-            <div class="alert alert-info" role="alert">
-                Found {{ model_report.rows_processed }} rows.
-            </div>
-            {% if not model_report.validation %}
-                <div class="alert alert-success" role="alert">
-                    Nicely done! The content of your file looks good.
-                </div>
-            {% endif %}
-            {% if model_report.validation %}
-                <div>
-                    <p class="text-warning">
-                        There were some issues trying to load your file to the database:
-                    </p>
-                </div>
-                {% include "track/includes/validation-report.html" with report=model_report.validation %}
-            {% endif %}
-        </div>
-        <div class="row justify-content-center">
-            {% if form %}
-                <form action="/track/upload/" method="post">
-                    {% csrf_token %}
-                    <div class="d-none">
-                        {{ form }}
-                    </div>
-                    <button class="btn btn-secondary" type="submit"><i class="fa fa-upload"></i>Confirm</button>
-                </form>
-            {% endif %}
-        </div>
-    {% endif %}
-
-    {% if upload_status == "success" %}
-        <div class="row justify-content-center my-3">
-        <div class="alert alert-success">
-            File uploaded successfully! Please go to <a href="/track/observations/">Observations view</a> to see the results.
-        </div>
-        </div>
-    {% endif %}
-
 {% endblock %}

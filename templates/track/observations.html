@@ -1,10 +1,10 @@
 {% extends 'track/base.html' %}
 {% block content %}
     <select class="custom-select">
-        <option value="null">Select a Parameter</option>
-        {% for parameter in parameters %}
-            <option value="{{ parameter.id }}" {% ifequal selected parameter %}
-                    selected {% endifequal %}>{{ parameter.panel.name }} | {{ parameter.public_name }}</option>
+        <option value="null">Select a patient</option>
+        {% for patient in patients %}
+            <option value="{{ patient.id }}" {% ifequal selected patient %}
+                    selected {% endifequal %}>{{ patient.patient_id }}</option>
         {% endfor %}
     </select>
 {% if selected != None %}
@@ -16,16 +16,16 @@
            data-mobile-responsive="true">
         <thead>
         <tr>
-            <th data-sortable="true" data-field="internal-name">Sample ID</th>
-            <th data-sortable="true">Date acquired</th>
+            <th data-sortable="true">Panel</th>
+            <th data-sortable="true">Parameter</th>
             <th data-sortable="true">Value</th>
         </tr>
         </thead>
         <tbody>
         {% for observation in numeric %}
             <tr>
-                <td data-value="{{ observation.processed_sample.clinical_sample.covid_patient_id }}">{{ observation.processed_sample.clinical_sample.covid_patient_id }}</td>
-                <td data-value="{{ observation.processed_sample.date_acquired }}">{{ observation.processed_sample.date_acquired|date:"SHORT_DATE_FORMAT" }}</td>
+                <td data-value="{{ observation.panel_name }}">{{ observation.panel_name }}</td>
+                <td data-value="{{ observation.parameter.gating_hierarchy }}">{{ observation.parameter.gating_hierarchy }}</td>
                 <td data-value="{{ observation.value }}">{{ observation.value }}</td>
             </tr>
         {% endfor %}
@@ -39,7 +39,7 @@
             if (!this.value) {
                 window.location = "/track/observations";
             } else {
-                window.location = "/track/observations?parameter=" + this.value;
+                window.location = "/track/observations?patient=" + this.value;
             }
         });
     </script>

@@ -12,7 +12,7 @@
                data-detail-formatter="detailFormatter">
             <thead>
             <tr>
-                <th data-sortable="true" data-field="sample_id">Clinical sample ID</th>
+                <th data-sortable="true" data-field="patient_covid_id">Patient ID</th>
                 {% for panel in panels %}
                     <th data-sortable="true" data-field="{{ panel }}" data-formatter="dateFormat">{{ panel }}</th>
                 {% endfor %}
@@ -27,7 +27,7 @@
         function detailFormatter(index, row) {
             let html = [];
             let panels = {{ panels | safe}};
-            let notIncluded = ["sample_id", "biobank_id", "id", "uploaded_file_id", "clinical_sample_id", "created", "modified"];
+            let notIncluded = ["patient_covid_id", "biobank_id", "id", "uploaded_file_id", "clinical_sample_id", "created", "modified"];
             $.each(row, function (key, value) {
                 if (notIncluded.includes(key) | panels.includes(key))
                     return;

@@ -13,5 +13,6 @@ urlpatterns = [
     path("observations/", views.observations_view, name="observations"),
     path("panels/", views.panels_view, name="panels"),
     path("login/", views.login, name="login"),
+    path("export/", views.export_view, name="export"),
     url(r"^oidc/", include("mozilla_django_oidc.urls")),
 ]

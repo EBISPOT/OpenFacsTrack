@@ -10,6 +10,8 @@ services:
       - POSTGRES_USER=openfacstrack
       - POSTGRES_PASSWORD=openfacstrack
       - POSTGRES_DB=openfacstrack
+    ports:
+      - 5432:5432
   keycloak:
     image: jboss/keycloak
     volumes:
