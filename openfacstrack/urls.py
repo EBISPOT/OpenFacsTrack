@@ -24,4 +24,5 @@ admin.site.index_title = "Welcome to COVID19 tracking database admin"
 urlpatterns = [
     path("track/", include("openfacstrack.apps.track.urls")),
     path("admin/", admin.site.urls),
+    #url(r"^api-auth/", include("rest_framework.urls", namespace="rest_framework")),
 ]
