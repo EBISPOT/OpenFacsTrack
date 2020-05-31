@@ -60,7 +60,9 @@ class UploadPatientTest(TestCase):
         self.assertEqual(PatientMetadataDict.objects.count(), 11)
 
         # All expected metadata stored
-        self.assertEqual(PatientMetadata.objects.count(), 33)
+        # Patient p005 - 4 NA, p025 - 2 NA, p033 - 2 NA, 2 blank
+        # Therefore expect (3x11)-(4+2+2+2) = 33-10 = 23 metadata objects
+        self.assertEqual(PatientMetadata.objects.count(), 23)
 
         # Uploaded file details stored
 
