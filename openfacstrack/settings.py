@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "openfacstrack.apps.track",
     "django.contrib.admin",
+    "rest_framework",
 ]
 
 MIDDLEWARE = [
@@ -153,3 +154,16 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "static/")
+
+# Settings for Django Rest Framework
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users 
+    # - ToDo check this with Ania!
+    'DEFAULT_PERMISSION_CLASSES': [],
+    # For production
+    # 'DEFAULT_PERMISSION_CLASSES': [
+    #   'rest_framework.permissions.IsAuthenticated',
+    # ],
+    'TEST_REQUEST_DEFAULT_FORMAT': 'json',
+}
