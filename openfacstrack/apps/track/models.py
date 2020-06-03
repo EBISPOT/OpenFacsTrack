@@ -30,7 +30,6 @@ class PatientMetadataDict(TimeStampedModel):
             [
                 "Metadata Key:" + self.name,
                 "Description:" + self.description,
-                "notes:" + self.notes,
             ]
         )
 
@@ -38,6 +37,7 @@ class PatientMetadataDict(TimeStampedModel):
 class PatientMetadata(TimeStampedModel):
     class Meta:
         unique_together = (("patient", "metadata_key"),)
+        ordering = ["metadata_key__name",]
 
     patient = models.ForeignKey(Patient, related_name='patient_metadata', on_delete=models.CASCADE)
     metadata_key = models.ForeignKey(PatientMetadataDict, on_delete=models.CASCADE)
