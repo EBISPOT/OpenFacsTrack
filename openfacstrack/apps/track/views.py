@@ -265,43 +265,52 @@ def export_view(request):
 def login(request):
     return render(request, "track/login.html")
 
-@api_view(['GET',])
+
+@api_view(
+    ["GET",]
+)
 def get_patients(request, pk=None):
     """Get details of all patients or specified patient"""
-    
+
     if pk is None:
         patients = Patient.objects.all()
         serializer = PatientSerializer(patients, many=True)
         return Response(serializer.data)
     else:
-        patient = get_object_or_404(Patient, patient_id=pk)    
+        patient = get_object_or_404(Patient, patient_id=pk)
         serializer = PatientSerializer(patient)
         return Response(serializer.data)
 
-@api_view(['GET',])
+
+@api_view(
+    ["GET",]
+)
 def get_samples(request, pk=None):
     """Get details of all samples (excluding results) or specified sample"""
-    
+
     if pk is None:
         samples = ProcessedSample.objects.all()
         serializer = ProcessedSampleSerializer(samples, many=True)
-    elif pk.find('n') >= 0:
-        sample = get_object_or_404(ProcessedSample, clinical_sample_id=pk)    
+    elif pk.find("n") >= 0:
+        sample = get_object_or_404(ProcessedSample, clinical_sample_id=pk)
         serializer = ProcessedSampleSerializer(sample)
 
     else:
-        samples = get_list_or_404(ProcessedSample, patient__patient_id=pk)    
+        samples = get_list_or_404(ProcessedSample, patient__patient_id=pk)
         serializer = ProcessedSampleSerializer(samples, many=True)
     return Response(serializer.data)
 
-@api_view(['GET',])
+
+@api_view(
+    ["GET",]
+)
 def get_observations(request, pk=None):
     """Get all results or specific results by patient_id or clinical_sample_id"""
 
     if pk is None:
         results = Result.objects.all()
         serializer = ObservationSerializer(results, many=True)
-    elif pk.find('n') >= 0:
+    elif pk.find("n") >= 0:
         results = get_list_or_404(Result, processed_sample__clinical_sample_id=pk)
         serializer = ObservationSerializer(results, many=True)
     else:
@@ -309,20 +318,23 @@ def get_observations(request, pk=None):
         serializer = ObservationSerializer(results, many=True)
     return Response(serializer.data)
 
-@api_view(['GET',])
+
+@api_view(
+    ["GET",]
+)
 def get_all_data(request, pk=None):
     """Get all patient, sample and results"""
-    
-    #if pk is None:
+
+    # if pk is None:
     #    results = Result.objects.all()
     #    serializer = AllDataSerializer(results, many=True)
-    #elif pk.find('n') >= 0:
+    # elif pk.find('n') >= 0:
     #    results = get_list_or_404(Result, processed_sample__clinical_sample_id=pk)
     #    serializer = AllDataSerializer(results, many=True)
-    #else:
+    # else:
     #    results = get_list_or_404(Result, processed_sample__patient__patient_id=pk)
     #    serializer = AllDataSerializer(results, many=True)
-    
+
     if pk is None:
         patients = Patient.objects.all()
         serializer = AllDataSerializer(patients, many=True)

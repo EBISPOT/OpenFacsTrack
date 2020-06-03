@@ -6,12 +6,11 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('track', '0003_auto_20200603_0949'),
+        ("track", "0003_auto_20200603_0949"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='patientmetadata',
-            options={'ordering': ['metadata_key__name']},
+            name="patientmetadata", options={"ordering": ["metadata_key__name"]},
         ),
     ]

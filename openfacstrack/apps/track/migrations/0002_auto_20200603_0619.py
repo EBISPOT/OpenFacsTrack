@@ -7,43 +7,74 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('track', '0001_initial'),
+        ("track", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='patientmetadata',
-            name='patient',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='patient_metadata', to='track.Patient'),
+            model_name="patientmetadata",
+            name="patient",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="patient_metadata",
+                to="track.Patient",
+            ),
         ),
         migrations.AlterField(
-            model_name='processedsample',
-            name='patient',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='samples', to='track.Patient'),
+            model_name="processedsample",
+            name="patient",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="samples",
+                to="track.Patient",
+            ),
         ),
         migrations.AlterField(
-            model_name='result',
-            name='data_processing',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='results', to='track.DataProcessing'),
+            model_name="result",
+            name="data_processing",
+            field=models.OneToOneField(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="results",
+                to="track.DataProcessing",
+            ),
         ),
         migrations.AlterField(
-            model_name='result',
-            name='gating_strategy',
-            field=models.ForeignKey(blank=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='results', to='track.GatingStrategy'),
+            model_name="result",
+            name="gating_strategy",
+            field=models.ForeignKey(
+                blank=True,
+                on_delete=django.db.models.deletion.DO_NOTHING,
+                related_name="results",
+                to="track.GatingStrategy",
+            ),
         ),
         migrations.AlterField(
-            model_name='result',
-            name='panel',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='results', to='track.Panel'),
+            model_name="result",
+            name="panel",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="results",
+                to="track.Panel",
+            ),
         ),
         migrations.AlterField(
-            model_name='result',
-            name='processed_sample',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='results', to='track.ProcessedSample'),
+            model_name="result",
+            name="processed_sample",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="results",
+                to="track.ProcessedSample",
+            ),
         ),
         migrations.AlterField(
-            model_name='result',
-            name='uploaded_file',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='results', to='track.UploadedFile'),
+            model_name="result",
+            name="uploaded_file",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.DO_NOTHING,
+                related_name="results",
+                to="track.UploadedFile",
+            ),
         ),
     ]

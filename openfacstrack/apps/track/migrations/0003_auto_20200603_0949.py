@@ -6,36 +6,36 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('track', '0002_auto_20200603_0619'),
+        ("track", "0002_auto_20200603_0619"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='datevalue',
-            options={'ordering': ['parameter__public_name']},
+            name="datevalue", options={"ordering": ["parameter__public_name"]},
         ),
         migrations.AlterModelOptions(
-            name='numericvalue',
-            options={'ordering': ['parameter__data_type', 'parameter__public_name']},
+            name="numericvalue",
+            options={"ordering": ["parameter__data_type", "parameter__public_name"]},
         ),
         migrations.AlterModelOptions(
-            name='patient',
-            options={'ordering': ['patient_id']},
+            name="patient", options={"ordering": ["patient_id"]},
         ),
         migrations.AlterModelOptions(
-            name='processedsample',
-            options={'ordering': ['patient__patient_id', 'clinical_sample_id']},
+            name="processedsample",
+            options={"ordering": ["patient__patient_id", "clinical_sample_id"]},
         ),
         migrations.AlterModelOptions(
-            name='result',
-            options={'ordering': ['processed_sample__clinical_sample_id', 'panel__name', 'gating_strategy__strategy']},
+            name="result",
+            options={
+                "ordering": [
+                    "processed_sample__clinical_sample_id",
+                    "panel__name",
+                    "gating_strategy__strategy",
+                ]
+            },
         ),
         migrations.AlterModelOptions(
-            name='textvalue',
-            options={'ordering': ['parameter__public_name']},
+            name="textvalue", options={"ordering": ["parameter__public_name"]},
         ),
-        migrations.AlterUniqueTogether(
-            name='result',
-            unique_together=set(),
-        ),
+        migrations.AlterUniqueTogether(name="result", unique_together=set(),),
     ]

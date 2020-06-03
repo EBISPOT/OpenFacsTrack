@@ -59,12 +59,6 @@ class GetAllDataTest(TestCase):
         validation_report = clinical_sample_file.validate()
         upload_report = clinical_sample_file.upload()
 
-
-
-
-
-
-
     def _get_uploaded_file(self, fname):
         """Return django object representing an uploaded file"""
 

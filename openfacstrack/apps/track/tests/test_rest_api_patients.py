@@ -27,11 +27,13 @@ from openfacstrack.apps.track.serializers import (
     ProcessedSampleSerializer,
     ResultSerializer,
 )
+
 # Test functionality associated with REST API
 
 
 class PatientTest(TestCase):
     """Test REST API access to patient model"""
+
     @classmethod
     def setUpTestData(cls):
         # Create gating strategy
@@ -83,9 +85,8 @@ class PatientTest(TestCase):
         validation_report = clinical_sample_file.validate()
         upload_report = clinical_sample_file.upload()
 
-
     def test_get_all_patients(self):
-        response = self.client.get(reverse('get_patients'))
+        response = self.client.get(reverse("get_patients"))
 
         patients = Patient.objects.all()
         serializer = PatientSerializer(patients, many=True)
@@ -97,15 +98,15 @@ class PatientTest(TestCase):
         Here we explicitly test against expected data - independent of the
         serializer
         """
-        patient_id = 'p005'
-        response = self.client.get(reverse('get_patients', kwargs={'pk': patient_id}))
+        patient_id = "p005"
+        response = self.client.get(reverse("get_patients", kwargs={"pk": patient_id}))
 
         patient = Patient.objects.get(patient_id=patient_id)
 
         # Load expected details from json file (have to change created and
         # modified times)
-        fname = 'test_api_expected_response.json'
-        fname = os.path.join(self.base_dir, 'test_data', fname)
+        fname = "test_api_expected_response.json"
+        fname = os.path.join(self.base_dir, "test_data", fname)
         with open(fname) as fid:
             expected_json = json.loads(fid.read())
         expected_json = expected_json[0]
@@ -120,12 +121,12 @@ class PatientTest(TestCase):
         for item in patient_metadata:
             ordered_patient_metadata.append(OrderedDict(item))
         expected_json["patient_metadata"] = ordered_patient_metadata
-        
+
         self.assertEqual(response.data, expected_json)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_get_all_samples(self):
-        response = self.client.get(reverse('get_samples'))
+        response = self.client.get(reverse("get_samples"))
 
         samples = ProcessedSample.objects.all()
         serializer = ProcessedSampleSerializer(samples, many=True)
@@ -133,13 +134,12 @@ class PatientTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_get_all_observations(self):
-        response = self.client.get(reverse('get_observations'))
+        response = self.client.get(reverse("get_observations"))
 
         results = Result.objects.all()
         serializer = ResultSerializer(results, many=True)
         self.assertEqual(response.data, serializer.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
 
     def _get_uploaded_file(self, fname):
         """Return django object representing an uploaded file"""
