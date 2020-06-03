@@ -26,7 +26,8 @@ from openfacstrack.apps.track.models import (
 from openfacstrack.apps.track.serializers import (
     PatientSerializer,
     ProcessedSampleSerializer,
-    ResultSerializer,
+    ObservationSerializer,
+    AllDataSerializer,
 )
 
 import json
@@ -299,11 +300,33 @@ def get_observations(request, pk=None):
 
     if pk is None:
         results = Result.objects.all()
-        serializer = ResultSerializer(results, many=True)
+        serializer = ObservationSerializer(results, many=True)
     elif pk.find('n') >= 0:
         results = get_list_or_404(Result, processed_sample__clinical_sample_id=pk)
-        serializer = ResultSerializer(results, many=True)
+        serializer = ObservationSerializer(results, many=True)
     else:
         results = get_list_or_404(Result, processed_sample__patient__patient_id=pk)
-        serializer = ResultSerializer(results, many=True)
+        serializer = ObservationSerializer(results, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET',])
+def get_all_data(request, pk=None):
+    """Get all patient, sample and results"""
+    
+    #if pk is None:
+    #    results = Result.objects.all()
+    #    serializer = AllDataSerializer(results, many=True)
+    #elif pk.find('n') >= 0:
+    #    results = get_list_or_404(Result, processed_sample__clinical_sample_id=pk)
+    #    serializer = AllDataSerializer(results, many=True)
+    #else:
+    #    results = get_list_or_404(Result, processed_sample__patient__patient_id=pk)
+    #    serializer = AllDataSerializer(results, many=True)
+    
+    if pk is None:
+        patients = Patient.objects.all()
+        serializer = AllDataSerializer(patients, many=True)
+    else:
+        patients = get_object_or_404(Patient, patient_id=pk)
+        serializer = AllDataSerializer(patients)
     return Response(serializer.data)

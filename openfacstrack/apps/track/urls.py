@@ -21,4 +21,6 @@ urlpatterns = [
     url(r"^api/v1/samples/(?P<pk>[Pp][0-9]+n[0-9]+)$", views.get_samples, name="get_samples_by_clinical_sample_id"),
     url(r"^api/v1/observations/(?P<pk>[Pp][0-9]+)?$", views.get_observations, name="get_observations"),
     url(r"^api/v1/observations/(?P<pk>[Pp][0-9]+n[0-9]+)$", views.get_observations, name="get_observations_by_clinical_sample_id"),
+    url(r"^api/v1/alldata/(?P<pk>[Pp][0-9]+)?$", views.get_all_data, name="get_all_data"),
+    url(r"^api/v1/alldata/(?P<pk>[Pp][0-9]+n[0-9]+)$", views.get_all_data, name="get_all_data_by_clinical_sample_id"),
 ]

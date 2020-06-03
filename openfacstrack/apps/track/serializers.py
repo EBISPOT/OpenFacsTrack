@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from .models import (
     Patient,
-    PatientMetadata,
     ProcessedSample,
     Result,
     NumericValue,
@@ -9,50 +8,44 @@ from .models import (
     DateValue,
 )
 
-class PatientMetadataSerializer(serializers.ModelSerializer):
-    #metadata_key_name = serializers.RelatedField(source="metadata_key.name", read_only=True)
-    metadata_key_name = serializers.CharField(source="metadata_key.name", read_only=True)
-    class Meta:
-        model = PatientMetadata
-        fields = ("metadata_key_name", "metadata_value",)
-
 class PatientSerializer(serializers.ModelSerializer):
-    patient_metadata = serializers.SerializerMethodField('get_metadata')
-    def get_metadata(self, patient):
-        patientmetadata = PatientMetadata.objects.filter(patient=patient)
-        return PatientMetadataSerializer(patientmetadata, many=True).data
+    patient_metadata = serializers.StringRelatedField(many=True)
 
     class Meta:
         model = Patient
-        fields = ("id", "created", "modified", "patient_id", "patient_metadata")
+        fields = ("patient_id", "created", "modified", "patient_metadata")
 
 
 class ProcessedSampleSerializer(serializers.ModelSerializer):
     patient_id = serializers.CharField(source="patient.patient_id", read_only=True)
     class Meta:
         model = ProcessedSample
-        fields = "__all__"
+        #fields = "__all__"
+        exclude = ("patient", "id",)
 
 class NumericValueSerializer(serializers.ModelSerializer):
-    parameter = serializers.CharField(source="parameter.gating_hierarchy", read_only=True)
+    #parameter = serializers.CharField(source="parameter.gating_hierarchy", read_only=True)
+    parameter = serializers.CharField(source="parameter.public_name", read_only=True)
     parameter_type = serializers.CharField(source="parameter.data_type", read_only=True)
     class Meta:
         model = NumericValue
         fields = ("parameter", "parameter_type", "value",)
 
 class TextValueSerializer(serializers.ModelSerializer):
-    parameter = serializers.CharField(source="parameter.gating_hierarchy", read_only=True)
+    #parameter = serializers.CharField(source="parameter.gating_hierarchy", read_only=True)
+    parameter = serializers.CharField(source="parameter.public_name", read_only=True)
     class Meta:
         model = TextValue
         fields = ("parameter", "value",)
 
 class DateValueSerializer(serializers.ModelSerializer):
-    parameter = serializers.CharField(source="parameter.gating_hierarchy", read_only=True)
+    #parameter = serializers.CharField(source="parameter.gating_hierarchy", read_only=True)
+    parameter = serializers.CharField(source="parameter.public_name", read_only=True)
     class Meta:
         model = DateValue
         fields = ("parameter", "value",)
 
-class ResultSerializer(serializers.ModelSerializer):
+class ObservationSerializer(serializers.ModelSerializer):
     patient_id = serializers.CharField(source="processed_sample.patient.patient_id", read_only=True)
     clinical_sample_id = serializers.CharField(source="processed_sample.clinical_sample_id", read_only=True)
     uploaded_file = serializers.CharField(source="uploaded_file.name", read_only=True)
@@ -77,9 +70,35 @@ class ResultSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Result
-        #fields = (
-        #   "created", "modified", "patient_id", "clinical_sample_id",
-        #   "uploaded_file_name", "panel_name", "gating_strategy_name",
-        #   "fcs_file_name",
-        #)
-        exclude = ("id", "processed_sample", "data_processing",)
+        fields = (
+           "patient_id", "clinical_sample_id", "uploaded_file",
+           "panel", "gating_strategy", "fcs_file_name",
+           "created", "modified", "numeric_values", "text_values",
+           "date_values",
+        )
+
+        #exclude = ("id", "processed_sample", "data_processing",)
+
+class SampleObservationSerializer(ProcessedSampleSerializer):
+    results = ObservationSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = ProcessedSample
+        fields = (
+            "clinical_sample_id", "date_acquired", "biobank_id",
+            "n_heparin_tubes", "n_paxgene_tubes", "bleed_time",
+            "processed_time", "blood_vol", "lymph_conc_as_MLNmL",
+            "total_lymph", "vol_frozen_mL", "freeze_time", "comments",
+            "real_pbmc_frozen_stock_conc_MLNmL", "created", "modified",
+            "results",
+        )
+        #exclude = ('id', 'patient',)
+
+class AllDataSerializer(PatientSerializer):
+    samples = SampleObservationSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Patient
+        fields = (
+            "patient_id", "created", "modified", "patient_metadata", "samples",
+        )
