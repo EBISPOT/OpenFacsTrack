@@ -640,12 +640,13 @@ class PatientFile:
 
                 # Store metadata associated with patient
                 for column, metadata_dict in metadata_dicts.items():
-                    value = row[column]
-                    patient_metadata = PatientMetadata.objects.get_or_create(
-                        patient=patient, metadata_key=metadata_dict
-                    )[0]
-                    patient_metadata.metadata_value = value
-                    patient_metadata.save()
+                    value = str(row[column]).strip()
+                    if len(value) > 0 and value != "nan":
+                        patient_metadata = PatientMetadata.objects.get_or_create(
+                            patient=patient, metadata_key=metadata_dict
+                        )[0]
+                        patient_metadata.metadata_value = value
+                        patient_metadata.save()
 
             if upload_issues:
                 for issue in upload_issues:

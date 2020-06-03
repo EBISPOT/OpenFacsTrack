@@ -1,4 +1,4 @@
 patient,group,covid19_status,sex,ethnicity,age,comorbidities,admission_to_itu,itu_stay_if_left,hospital_stay_if_left,died,symptoms
-p001,Hospitalised,Confirmed,Male,white,76-85,"heart,T2D",NA,NA,NA,NA,Paucisymptomatic
+p005,Hospitalised,Confirmed,Male,white,76-85,"heart,T2D",NA,NA,NA,NA,Paucisymptomatic
 p025,Hospitalised,Confirmed,Male,black,66-75,NA,D3,D4,D14,NA,Severe
-p064,Healthy,Unknown,Male,white,25-35,None,NA,NA,NA,NA,Healthy
+p033,Healthy,Unknown,Male,white,25-35,None,NA,NA,NA,NA,Healthy

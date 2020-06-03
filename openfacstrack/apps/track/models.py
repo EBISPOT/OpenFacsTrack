@@ -12,6 +12,9 @@ class Patient(TimeStampedModel):
 
     patient_id = models.CharField(max_length=10, unique=True)
 
+    class Meta:
+        ordering = ["patient_id"]
+
     def __str__(self):
         return "PatientID:" + self.patient_id
 
@@ -24,30 +27,25 @@ class PatientMetadataDict(TimeStampedModel):
 
     def __str__(self):
         return ", ".join(
-            [
-                "Metadata Key:" + self.name,
-                "Description:" + self.description,
-                "notes:" + self.notes,
-            ]
+            ["Metadata Key:" + self.name, "Description:" + self.description,]
         )
 
 
 class PatientMetadata(TimeStampedModel):
     class Meta:
         unique_together = (("patient", "metadata_key"),)
+        ordering = [
+            "metadata_key__name",
+        ]
 
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    patient = models.ForeignKey(
+        Patient, related_name="patient_metadata", on_delete=models.CASCADE
+    )
     metadata_key = models.ForeignKey(PatientMetadataDict, on_delete=models.CASCADE)
     metadata_value = models.CharField(max_length=255)
 
     def __str__(self):
-        return ", ".join(
-            [
-                "Patient ID:" + self.patient.patient_id,
-                "Metadata Key:" + self.metadata_key.name,
-                "Metadata value:" + self.metadata_value,
-            ]
-        )
+        return f"{self.metadata_key.name}: {self.metadata_value}"
 
 
 def user_directory_path(instance, filename):
@@ -109,7 +107,9 @@ class ValidationEntry(TimeStampedModel):
 class ProcessedSample(TimeStampedModel):
 
     clinical_sample_id = models.CharField(max_length=12, unique=True)
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    patient = models.ForeignKey(
+        Patient, related_name="samples", on_delete=models.CASCADE
+    )
 
     # This is meant to store the date a physical sample was acquired - not
     # the date some of it was processed in a panel. That is stored in the
@@ -128,6 +128,12 @@ class ProcessedSample(TimeStampedModel):
     # This is to store comments about the sample - not about panel results!
     comments = models.TextField()
     real_pbmc_frozen_stock_conc_MLNmL = models.FloatField(blank=True, null=True)
+
+    class Meta:
+        ordering = [
+            "patient__patient_id",
+            "clinical_sample_id",
+        ]
 
     def __str__(self):
         return ", ".join(
@@ -173,15 +179,33 @@ class Result(TimeStampedModel):
             "data_processing",
         )
 
-    processed_sample = models.ForeignKey(ProcessedSample, on_delete=models.CASCADE)
+    processed_sample = models.ForeignKey(
+        ProcessedSample, related_name="results", on_delete=models.CASCADE
+    )
     uploaded_file = models.ForeignKey(
-        UploadedFile, on_delete=models.DO_NOTHING, null=True, blank=True
+        UploadedFile,
+        related_name="results",
+        on_delete=models.DO_NOTHING,
+        null=True,
+        blank=True,
     )
-    panel = models.ForeignKey("Panel", on_delete=models.CASCADE)
+    panel = models.ForeignKey("Panel", related_name="results", on_delete=models.CASCADE)
     gating_strategy = models.ForeignKey(
-        "GatingStrategy", blank=True, on_delete=models.DO_NOTHING
+        "GatingStrategy",
+        related_name="results",
+        blank=True,
+        on_delete=models.DO_NOTHING,
     )
-    data_processing = models.OneToOneField("DataProcessing", on_delete=models.CASCADE)
+    data_processing = models.OneToOneField(
+        "DataProcessing", related_name="results", on_delete=models.CASCADE
+    )
+
+    class Meta:
+        ordering = [
+            "processed_sample__clinical_sample_id",
+            "panel__name",
+            "gating_strategy__strategy",
+        ]
 
     def __str__(self):
         return ", ".join(
@@ -189,6 +213,7 @@ class Result(TimeStampedModel):
                 "Clinical sample ID:" + self.processed_sample.clinical_sample_id,
                 "Panel:" + self.panel.name,
                 "Gating strategy:" + self.gating_strategy.strategy,
+                "FCS file name:" + self.data_processing.fcs_file_name,
             ]
         )
 
@@ -273,6 +298,10 @@ class DataProcessing(TimeStampedModel):
 class NumericValue(TimeStampedModel):
     class Meta:
         unique_together = ("result", "parameter")
+        ordering = [
+            "parameter__data_type",
+            "parameter__public_name",
+        ]
 
     result = models.ForeignKey(Result, on_delete=models.CASCADE)
     parameter = models.ForeignKey(Parameter, on_delete=models.CASCADE)
@@ -292,6 +321,9 @@ class NumericValue(TimeStampedModel):
 class TextValue(TimeStampedModel):
     class Meta:
         unique_together = ("result", "parameter")
+        ordering = [
+            "parameter__public_name",
+        ]
 
     result = models.ForeignKey(Result, on_delete=models.CASCADE)
     parameter = models.ForeignKey(Parameter, on_delete=models.CASCADE)
@@ -310,6 +342,9 @@ class TextValue(TimeStampedModel):
 class DateValue(TimeStampedModel):
     class Meta:
         unique_together = ("result", "parameter")
+        ordering = [
+            "parameter__public_name",
+        ]
 
     result = models.ForeignKey(Result, on_delete=models.CASCADE)
     parameter = models.ForeignKey(Parameter, on_delete=models.CASCADE)

@@ -7,3 +7,4 @@ mozilla-django-oidc
 numpy
 pandas
 xlrd
+djangorestframework

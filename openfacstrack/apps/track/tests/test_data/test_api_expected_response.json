@@ -1,0 +1,80 @@
+[
+    {
+        "id": 1,
+        "created": "2020-05-28T19:51:47.538311Z",
+        "modified": "2020-05-28T19:51:47.538311Z",
+        "patient_id": "p005",
+        "patient_metadata": [
+            {
+                "metadata_key_name": "group",
+                "metadata_value": "Hospitalised"
+            },
+            {
+                "metadata_key_name": "covid19_status",
+                "metadata_value": "Confirmed"
+            },
+            {
+                "metadata_key_name": "sex",
+                "metadata_value": "Male"
+            },
+            {
+                "metadata_key_name": "ethnicity",
+                "metadata_value": "white"
+            },
+            {
+                "metadata_key_name": "age",
+                "metadata_value": "76-85"
+            },
+            {
+                "metadata_key_name": "comorbidities",
+                "metadata_value": "heart,T2D"
+            },
+            {
+                "metadata_key_name": "symptoms",
+                "metadata_value": "Paucisymptomatic"
+            }
+        ],
+        "samples": [
+            {
+                "sample_id": "p005n01",
+                "sample_metadata_1_key": "sample_metadata_1_value",
+                "sample_metadata_2_key": "sample_metadata_2_value",
+                "sample_metadata_n_key": "sample_metadata_n_value",
+                "panel_results": [
+                    {
+                        "panel": "p5",
+                        "gating_strategy": "manual",
+                        "fcs_filename": "20200327p5_p005n01_020.fcs",
+                        "results": [
+                            {
+                                "type": "PanelNumeric",
+                                "parameter": "Cells_5/Time_5/Live_5/Live_cells_5/CD3p_5/No_Doublets_5/ab_5/Foxp3n_5/CD8p_5/CD8_CD45RAn_CCR7n_5 | Count",
+                                "value": 3128
+                            },
+                            {
+                                "type":"PanelNumeric",
+                                "parameter":"Cells_5/Time_5/Live_5/Live_cells_5/CD3p_5/No_Doublets_5/ab_5/Foxp3n_5/CD8p_5/CD8_CD45RAn_CCR7p_5/S_G2_M_5 | Count",
+                                "value": 0
+                            },
+                            {
+                                "type": "SampleNumeric",
+                                "parameter": "Operator name",
+                                "value": "3"
+                            },
+                            {
+                                "type": "Date",
+                                "parameter": "Date",
+                                "value": "27/03/2020"
+                            },
+                            {
+                                "type": "SampleNumeric",
+                                "parameter": "batch",
+                                "value": 1
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+] 
