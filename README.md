@@ -1,6 +1,8 @@
 # OpenFacsTrack
 Software to track flow cytometry data.
 
+
+
 ## Deploy on Docker
 
 ```
@@ -34,3 +36,10 @@ brew install postgresql
 ### Cleaning your environments
 
 Run ```make help``` to see the cleaning environments goals.
+
+
+### Acknowledgements
+
+The work was supported by EMBL core funding and the European Union’s Horizon 2020 Research and Innovation Programme under grant agreement no. 730879 via the INFRAFRONTIER Research Infraestructure.
+
+![infrafrontier logo](https://www.infrafrontier.eu/sites/infrafrontier.eu/themes/custom/infrafrontier/img/logo-infrafrontier.png "Logo Title Text 1")
